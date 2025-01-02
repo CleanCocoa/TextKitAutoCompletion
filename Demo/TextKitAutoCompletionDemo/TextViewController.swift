@@ -3,9 +3,9 @@
 import AppKit
 import TextKitAutoCompletion
 
-class TextViewController: NSViewController {
-    @IBOutlet weak var textView: NSTextView!
-    
+class TextViewController: NSViewController, NSTextViewDelegate {
+    @IBOutlet weak var textView: TypeToCompleteTextView!
+
     override func viewDidLoad() {
         super.viewDidLoad()
     }

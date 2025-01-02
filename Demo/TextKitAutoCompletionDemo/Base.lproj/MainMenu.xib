@@ -696,7 +696,7 @@
                             <rect key="frame" x="0.0" y="0.0" width="480" height="360"/>
                             <autoresizingMask key="autoresizingMask" widthSizable="YES" heightSizable="YES"/>
                             <subviews>
-                                <textView wantsLayer="YES" importsGraphics="NO" richText="NO" verticallyResizable="YES" smartInsertDelete="YES" id="72s-tM-Wzq">
+                                <textView wantsLayer="YES" importsGraphics="NO" richText="NO" verticallyResizable="YES" smartInsertDelete="YES" id="72s-tM-Wzq" customClass="TypeToCompleteTextView" customModule="TextKitAutoCompletionDemo" customModuleProvider="target">
                                     <rect key="frame" x="0.0" y="0.0" width="480" height="360"/>
                                     <autoresizingMask key="autoresizingMask" widthSizable="YES" heightSizable="YES"/>
                                     <color key="textColor" name="textColor" catalog="System" colorSpace="catalog"/>
