@@ -4,21 +4,22 @@
 import PackageDescription
 
 let package = Package(
-    name: "TextKitAutocompletion",
+    name: "TextKitAutoCompletion",
+    platforms: [.macOS(.v10_13)],
     products: [
-        // Products define the executables and libraries a package produces, making them visible to other packages.
         .library(
-            name: "TextKitAutocompletion",
-            targets: ["TextKitAutocompletion"]),
+            name: "TextKitAutoCompletion",
+            targets: ["TextKitAutoCompletion"]),
+    ],
+    dependencies: [
+        .package(url: "https://github.com/CleanCocoa/Omnibar", from: "0.19.0"),
     ],
     targets: [
-        // Targets are the basic building blocks of a package, defining a module or a test suite.
-        // Targets can depend on other targets in this package and products from dependencies.
         .target(
-            name: "TextKitAutocompletion"),
+            name: "TextKitAutoCompletion"),
         .testTarget(
-            name: "TextKitAutocompletionTests",
-            dependencies: ["TextKitAutocompletion"]
+            name: "TextKitAutoCompletionTests",
+            dependencies: ["TextKitAutoCompletion"]
         ),
     ]
 )
