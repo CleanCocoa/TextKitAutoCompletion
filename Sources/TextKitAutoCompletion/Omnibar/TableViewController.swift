@@ -92,7 +92,7 @@ class TableViewController: NSViewController, NSTableViewDataSource, NSTableViewD
         cellView.addSubview(textField)
         NSLayoutConstraint.activate([
             cellView.leadingAnchor.constraint(equalTo: textField.leadingAnchor, constant: 4),
-            cellView.trailingAnchor.constraint(equalTo: textField.leadingAnchor, constant: -4),
+            cellView.trailingAnchor.constraint(equalTo: textField.trailingAnchor, constant: -4),
             cellView.topAnchor.constraint(equalTo: textField.topAnchor, constant: -4),
             cellView.bottomAnchor.constraint(equalTo: textField.bottomAnchor, constant: 4),
         ])
