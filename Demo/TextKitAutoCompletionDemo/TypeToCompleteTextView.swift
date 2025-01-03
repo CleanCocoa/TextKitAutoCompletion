@@ -20,9 +20,13 @@ class TypeToCompleteTextView: NSTextView {
     var completionController: CompletionController?
 
     override func complete(_ sender: Any?) {
+        guard let window = self.window else { preconditionFailure("Views are expected to have windows") }
         completionController = CompletionController()
         let partialWordRange = self.rangeForUserCompletion
         var indexOfSelectedItem: Int = -1
+        let selectionRectInScreenCoordinates = self.firstRect(forCharacterRange: self.selectedRange(), actualRange: nil)
+        let selectionRectInWindow = window.convertFromScreen(selectionRectInScreenCoordinates)
+        let selectionRect = self.convert(selectionRectInWindow, from: nil)
         completionController!.display(
             completions: completions(
                 forPartialWordRange: partialWordRange,
@@ -31,7 +35,7 @@ class TypeToCompleteTextView: NSTextView {
             indexOfSelectedItem: indexOfSelectedItem,
             forPartialWordRange: partialWordRange,
             originalString: self.attributedString().attributedSubstring(from: partialWordRange).string,
-            atPoint: self.layoutManager!.location(forGlyphAt: self.layoutManager!.glyphIndexForCharacter(at: self.selectedRange().location)),
+            relativeTo: selectionRect,
             forTextView: self
         )
     }
@@ -55,10 +59,12 @@ class CompletionController {
         indexOfSelectedItem: Int,
         forPartialWordRange partialWordRange: NSRange,
         originalString: String,
-        atPoint point: NSPoint,
+        relativeTo rect: NSRect,
         forTextView textView: NSTextView
     ) {
-        popover.show(relativeTo: NSRect(origin: point, size: .zero), of: textView, preferredEdge: .minY)
+        var rect = rect
+        rect.size.width = max(rect.size.width, 1)  // Zero-width rect will be discarded and the popover will resort to showing on the view's edge.
+        popover.show(relativeTo: rect, of: textView, preferredEdge: .minY)
         controller.showCompletions(completions)
     }
 }
