@@ -1,0 +1,24 @@
+{
+  "originHash" : "b8dd9769c69a7a485d25af48be0f2e505e12b217af4de888e7e4083800579263",
+  "pins" : [
+    {
+      "identity" : "omnibar",
+      "kind" : "remoteSourceControl",
+      "location" : "https://github.com/CleanCocoa/Omnibar",
+      "state" : {
+        "revision" : "b3f1a2a549fb022e4e1fdb64902359819c1558a4",
+        "version" : "0.21.0"
+      }
+    },
+    {
+      "identity" : "rxswift",
+      "kind" : "remoteSourceControl",
+      "location" : "https://github.com/ReactiveX/RxSwift.git",
+      "state" : {
+        "revision" : "c7c7d2cf50a3211fe2843f76869c698e4e417930",
+        "version" : "6.8.0"
+      }
+    }
+  ],
+  "version" : 3
+}

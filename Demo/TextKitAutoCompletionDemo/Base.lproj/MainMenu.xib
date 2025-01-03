@@ -690,13 +690,13 @@
                 <rect key="frame" x="0.0" y="0.0" width="480" height="360"/>
                 <autoresizingMask key="autoresizingMask"/>
                 <subviews>
-                    <scrollView borderType="none" horizontalLineScroll="10" horizontalPageScroll="10" verticalLineScroll="10" verticalPageScroll="10" hasHorizontalScroller="NO" translatesAutoresizingMaskIntoConstraints="NO" id="zqh-3g-dLj">
+                    <scrollView borderType="none" horizontalLineScroll="10" horizontalPageScroll="10" verticalLineScroll="10" verticalPageScroll="10" hasHorizontalScroller="NO" translatesAutoresizingMaskIntoConstraints="NO" id="3rM-Ts-aDY">
                         <rect key="frame" x="0.0" y="0.0" width="480" height="360"/>
-                        <clipView key="contentView" drawsBackground="NO" id="e36-ZF-h4X">
+                        <clipView key="contentView" drawsBackground="NO" id="jzv-qc-5ej">
                             <rect key="frame" x="0.0" y="0.0" width="480" height="360"/>
                             <autoresizingMask key="autoresizingMask" widthSizable="YES" heightSizable="YES"/>
                             <subviews>
-                                <textView wantsLayer="YES" importsGraphics="NO" richText="NO" verticallyResizable="YES" smartInsertDelete="YES" id="72s-tM-Wzq" customClass="TypeToCompleteTextView" customModule="TextKitAutoCompletionDemo" customModuleProvider="target">
+                                <textView wantsLayer="YES" importsGraphics="NO" richText="NO" verticallyResizable="YES" smartInsertDelete="YES" id="D71-KM-vrE" customClass="TypeToCompleteTextView" customModule="TextKitAutoCompletionDemo" customModuleProvider="target">
                                     <rect key="frame" x="0.0" y="0.0" width="480" height="360"/>
                                     <autoresizingMask key="autoresizingMask" widthSizable="YES" heightSizable="YES"/>
                                     <color key="textColor" name="textColor" catalog="System" colorSpace="catalog"/>
@@ -706,21 +706,21 @@
                                 </textView>
                             </subviews>
                         </clipView>
-                        <scroller key="horizontalScroller" hidden="YES" wantsLayer="YES" verticalHuggingPriority="750" horizontal="YES" id="zGd-oG-cPf">
+                        <scroller key="horizontalScroller" hidden="YES" wantsLayer="YES" verticalHuggingPriority="750" horizontal="YES" id="ysM-03-ssC">
                             <rect key="frame" x="-100" y="-100" width="240" height="16"/>
                             <autoresizingMask key="autoresizingMask"/>
                         </scroller>
-                        <scroller key="verticalScroller" wantsLayer="YES" verticalHuggingPriority="750" horizontal="NO" id="LIg-Ch-8oD">
+                        <scroller key="verticalScroller" wantsLayer="YES" verticalHuggingPriority="750" horizontal="NO" id="P1j-nv-00l">
                             <rect key="frame" x="464" y="0.0" width="16" height="360"/>
                             <autoresizingMask key="autoresizingMask"/>
                         </scroller>
                     </scrollView>
                 </subviews>
                 <constraints>
-                    <constraint firstItem="zqh-3g-dLj" firstAttribute="leading" secondItem="EiT-Mj-1SZ" secondAttribute="leading" id="3Db-rK-hl0"/>
-                    <constraint firstItem="zqh-3g-dLj" firstAttribute="top" secondItem="EiT-Mj-1SZ" secondAttribute="top" id="PHQ-ZI-j2e"/>
-                    <constraint firstAttribute="bottom" secondItem="zqh-3g-dLj" secondAttribute="bottom" id="RpI-7B-mtS"/>
-                    <constraint firstAttribute="trailing" secondItem="zqh-3g-dLj" secondAttribute="trailing" id="UFe-1T-2e0"/>
+                    <constraint firstAttribute="bottom" secondItem="3rM-Ts-aDY" secondAttribute="bottom" id="93y-Cd-PT5"/>
+                    <constraint firstAttribute="trailing" secondItem="3rM-Ts-aDY" secondAttribute="trailing" id="GQu-YD-EWK"/>
+                    <constraint firstItem="3rM-Ts-aDY" firstAttribute="top" secondItem="EiT-Mj-1SZ" secondAttribute="top" id="IdE-Gx-Xqc"/>
+                    <constraint firstItem="3rM-Ts-aDY" firstAttribute="leading" secondItem="EiT-Mj-1SZ" secondAttribute="leading" id="fND-sd-jJ6"/>
                 </constraints>
             </view>
             <connections>
@@ -728,10 +728,10 @@
             </connections>
             <point key="canvasLocation" x="200" y="400"/>
         </window>
-        <customObject id="Q92-Xo-0Jg" customClass="TextViewController" customModule="TextKitAutoCompletionDemo" customModuleProvider="target">
+        <customObject id="AdB-xQ-EGZ" customClass="TextViewController" customModule="TextKitAutoCompletionDemo" customModuleProvider="target">
             <connections>
-                <outlet property="textView" destination="72s-tM-Wzq" id="yfc-Vb-1qw"/>
-                <outlet property="view" destination="zqh-3g-dLj" id="q3R-7h-Q6P"/>
+                <outlet property="textView" destination="D71-KM-vrE" id="tR5-2h-gtb"/>
+                <outlet property="view" destination="3rM-Ts-aDY" id="Ype-CB-D7m"/>
             </connections>
         </customObject>
     </objects>

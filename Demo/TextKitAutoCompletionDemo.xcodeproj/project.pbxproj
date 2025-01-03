@@ -7,15 +7,15 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
-		5088A2A02D269C3400180479 /* TextKitAutoCompletion in Frameworks */ = {isa = PBXBuildFile; productRef = 5088A29F2D269C3400180479 /* TextKitAutoCompletion */; };
+		50E37D462D27D0D500CC9576 /* TextKitAutoCompletion in Frameworks */ = {isa = PBXBuildFile; productRef = 50E37D452D27D0D500CC9576 /* TextKitAutoCompletion */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
-		5088A23F2D269BDB00180479 /* TextKitAutoCompletionDemo.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = TextKitAutoCompletionDemo.app; sourceTree = BUILT_PRODUCTS_DIR; };
+		50E37D342D27D0A800CC9576 /* TextKitAutoCompletionDemo.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = TextKitAutoCompletionDemo.app; sourceTree = BUILT_PRODUCTS_DIR; };
 /* End PBXFileReference section */
 
 /* Begin PBXFileSystemSynchronizedRootGroup section */
-		5088A2412D269BDB00180479 /* TextKitAutoCompletionDemo */ = {
+		50E37D362D27D0A800CC9576 /* TextKitAutoCompletionDemo */ = {
 			isa = PBXFileSystemSynchronizedRootGroup;
 			path = TextKitAutoCompletionDemo;
 			sourceTree = "<group>";
@@ -23,29 +23,29 @@
 /* End PBXFileSystemSynchronizedRootGroup section */
 
 /* Begin PBXFrameworksBuildPhase section */
-		5088A23C2D269BDB00180479 /* Frameworks */ = {
+		50E37D312D27D0A800CC9576 /* Frameworks */ = {
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				5088A2A02D269C3400180479 /* TextKitAutoCompletion in Frameworks */,
+				50E37D462D27D0D500CC9576 /* TextKitAutoCompletion in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
 /* End PBXFrameworksBuildPhase section */
 
 /* Begin PBXGroup section */
-		5088A2362D269BDB00180479 = {
+		50E37D2B2D27D0A800CC9576 = {
 			isa = PBXGroup;
 			children = (
-				5088A2412D269BDB00180479 /* TextKitAutoCompletionDemo */,
-				5088A2402D269BDB00180479 /* Products */,
+				50E37D362D27D0A800CC9576 /* TextKitAutoCompletionDemo */,
+				50E37D352D27D0A800CC9576 /* Products */,
 			);
 			sourceTree = "<group>";
 		};
-		5088A2402D269BDB00180479 /* Products */ = {
+		50E37D352D27D0A800CC9576 /* Products */ = {
 			isa = PBXGroup;
 			children = (
-				5088A23F2D269BDB00180479 /* TextKitAutoCompletionDemo.app */,
+				50E37D342D27D0A800CC9576 /* TextKitAutoCompletionDemo.app */,
 			);
 			name = Products;
 			sourceTree = "<group>";
@@ -53,68 +53,69 @@
 /* End PBXGroup section */
 
 /* Begin PBXNativeTarget section */
-		5088A23E2D269BDB00180479 /* TextKitAutoCompletionDemo */ = {
+		50E37D332D27D0A800CC9576 /* TextKitAutoCompletionDemo */ = {
 			isa = PBXNativeTarget;
-			buildConfigurationList = 5088A2622D269BDC00180479 /* Build configuration list for PBXNativeTarget "TextKitAutoCompletionDemo" */;
+			buildConfigurationList = 50E37D412D27D0A900CC9576 /* Build configuration list for PBXNativeTarget "TextKitAutoCompletionDemo" */;
 			buildPhases = (
-				5088A23B2D269BDB00180479 /* Sources */,
-				5088A23C2D269BDB00180479 /* Frameworks */,
-				5088A23D2D269BDB00180479 /* Resources */,
+				50E37D302D27D0A800CC9576 /* Sources */,
+				50E37D312D27D0A800CC9576 /* Frameworks */,
+				50E37D322D27D0A800CC9576 /* Resources */,
 			);
 			buildRules = (
 			);
 			dependencies = (
 			);
 			fileSystemSynchronizedGroups = (
-				5088A2412D269BDB00180479 /* TextKitAutoCompletionDemo */,
+				50E37D362D27D0A800CC9576 /* TextKitAutoCompletionDemo */,
 			);
 			name = TextKitAutoCompletionDemo;
 			packageProductDependencies = (
-				5088A29F2D269C3400180479 /* TextKitAutoCompletion */,
+				50E37D452D27D0D500CC9576 /* TextKitAutoCompletion */,
 			);
 			productName = TextKitAutoCompletionDemo;
-			productReference = 5088A23F2D269BDB00180479 /* TextKitAutoCompletionDemo.app */;
+			productReference = 50E37D342D27D0A800CC9576 /* TextKitAutoCompletionDemo.app */;
 			productType = "com.apple.product-type.application";
 		};
 /* End PBXNativeTarget section */
 
 /* Begin PBXProject section */
-		5088A2372D269BDB00180479 /* Project object */ = {
+		50E37D2C2D27D0A800CC9576 /* Project object */ = {
 			isa = PBXProject;
 			attributes = {
 				BuildIndependentTargetsInParallel = 1;
 				LastSwiftUpdateCheck = 1610;
 				LastUpgradeCheck = 1610;
 				TargetAttributes = {
-					5088A23E2D269BDB00180479 = {
+					50E37D332D27D0A800CC9576 = {
 						CreatedOnToolsVersion = 16.1;
+						LastSwiftMigration = 1610;
 					};
 				};
 			};
-			buildConfigurationList = 5088A23A2D269BDB00180479 /* Build configuration list for PBXProject "TextKitAutoCompletionDemo" */;
+			buildConfigurationList = 50E37D2F2D27D0A800CC9576 /* Build configuration list for PBXProject "TextKitAutoCompletionDemo" */;
 			developmentRegion = en;
 			hasScannedForEncodings = 0;
 			knownRegions = (
 				en,
 				Base,
 			);
-			mainGroup = 5088A2362D269BDB00180479;
+			mainGroup = 50E37D2B2D27D0A800CC9576;
 			minimizedProjectReferenceProxies = 1;
 			packageReferences = (
-				5088A29E2D269C3400180479 /* XCLocalSwiftPackageReference "../../TextKitAutoCompletion" */,
+				50E37D442D27D0D500CC9576 /* XCLocalSwiftPackageReference "../../TextKitAutoCompletion" */,
 			);
 			preferredProjectObjectVersion = 77;
-			productRefGroup = 5088A2402D269BDB00180479 /* Products */;
+			productRefGroup = 50E37D352D27D0A800CC9576 /* Products */;
 			projectDirPath = "";
 			projectRoot = "";
 			targets = (
-				5088A23E2D269BDB00180479 /* TextKitAutoCompletionDemo */,
+				50E37D332D27D0A800CC9576 /* TextKitAutoCompletionDemo */,
 			);
 		};
 /* End PBXProject section */
 
 /* Begin PBXResourcesBuildPhase section */
-		5088A23D2D269BDB00180479 /* Resources */ = {
+		50E37D322D27D0A800CC9576 /* Resources */ = {
 			isa = PBXResourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
@@ -124,7 +125,7 @@
 /* End PBXResourcesBuildPhase section */
 
 /* Begin PBXSourcesBuildPhase section */
-		5088A23B2D269BDB00180479 /* Sources */ = {
+		50E37D302D27D0A800CC9576 /* Sources */ = {
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
@@ -134,7 +135,7 @@
 /* End PBXSourcesBuildPhase section */
 
 /* Begin XCBuildConfiguration section */
-		5088A2602D269BDC00180479 /* Debug */ = {
+		50E37D3F2D27D0A900CC9576 /* Debug */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
 				ALWAYS_SEARCH_USER_PATHS = NO;
@@ -197,7 +198,7 @@
 			};
 			name = Debug;
 		};
-		5088A2612D269BDC00180479 /* Release */ = {
+		50E37D402D27D0A900CC9576 /* Release */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
 				ALWAYS_SEARCH_USER_PATHS = NO;
@@ -252,12 +253,15 @@
 			};
 			name = Release;
 		};
-		5088A2632D269BDC00180479 /* Debug */ = {
+		50E37D422D27D0A900CC9576 /* Debug */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
+				CLANG_ENABLE_MODULES = YES;
 				CODE_SIGN_ENTITLEMENTS = TextKitAutoCompletionDemo/TextKitAutoCompletionDemo.entitlements;
+				CODE_SIGN_IDENTITY = "Apple Development";
+				"CODE_SIGN_IDENTITY[sdk=macosx*]" = "-";
 				CODE_SIGN_STYLE = Automatic;
 				COMBINE_HIDPI_IMAGES = YES;
 				CURRENT_PROJECT_VERSION = 1;
@@ -273,17 +277,23 @@
 				MARKETING_VERSION = 1.0;
 				PRODUCT_BUNDLE_IDENTIFIER = de.christiantietze.TextKitAutoCompletionDemo;
 				PRODUCT_NAME = "$(TARGET_NAME)";
+				PROVISIONING_PROFILE_SPECIFIER = "";
 				SWIFT_EMIT_LOC_STRINGS = YES;
+				SWIFT_OBJC_BRIDGING_HEADER = "TextKitAutoCompletionDemo/TextKitAutoCompletionDemo-Bridging-Header.h";
+				SWIFT_OPTIMIZATION_LEVEL = "-Onone";
 				SWIFT_VERSION = 5.0;
 			};
 			name = Debug;
 		};
-		5088A2642D269BDC00180479 /* Release */ = {
+		50E37D432D27D0A900CC9576 /* Release */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
+				CLANG_ENABLE_MODULES = YES;
 				CODE_SIGN_ENTITLEMENTS = TextKitAutoCompletionDemo/TextKitAutoCompletionDemo.entitlements;
+				CODE_SIGN_IDENTITY = "Apple Development";
+				"CODE_SIGN_IDENTITY[sdk=macosx*]" = "-";
 				CODE_SIGN_STYLE = Automatic;
 				COMBINE_HIDPI_IMAGES = YES;
 				CURRENT_PROJECT_VERSION = 1;
@@ -299,7 +309,9 @@
 				MARKETING_VERSION = 1.0;
 				PRODUCT_BUNDLE_IDENTIFIER = de.christiantietze.TextKitAutoCompletionDemo;
 				PRODUCT_NAME = "$(TARGET_NAME)";
+				PROVISIONING_PROFILE_SPECIFIER = "";
 				SWIFT_EMIT_LOC_STRINGS = YES;
+				SWIFT_OBJC_BRIDGING_HEADER = "TextKitAutoCompletionDemo/TextKitAutoCompletionDemo-Bridging-Header.h";
 				SWIFT_VERSION = 5.0;
 			};
 			name = Release;
@@ -307,20 +319,20 @@
 /* End XCBuildConfiguration section */
 
 /* Begin XCConfigurationList section */
-		5088A23A2D269BDB00180479 /* Build configuration list for PBXProject "TextKitAutoCompletionDemo" */ = {
+		50E37D2F2D27D0A800CC9576 /* Build configuration list for PBXProject "TextKitAutoCompletionDemo" */ = {
 			isa = XCConfigurationList;
 			buildConfigurations = (
-				5088A2602D269BDC00180479 /* Debug */,
-				5088A2612D269BDC00180479 /* Release */,
+				50E37D3F2D27D0A900CC9576 /* Debug */,
+				50E37D402D27D0A900CC9576 /* Release */,
 			);
 			defaultConfigurationIsVisible = 0;
 			defaultConfigurationName = Release;
 		};
-		5088A2622D269BDC00180479 /* Build configuration list for PBXNativeTarget "TextKitAutoCompletionDemo" */ = {
+		50E37D412D27D0A900CC9576 /* Build configuration list for PBXNativeTarget "TextKitAutoCompletionDemo" */ = {
 			isa = XCConfigurationList;
 			buildConfigurations = (
-				5088A2632D269BDC00180479 /* Debug */,
-				5088A2642D269BDC00180479 /* Release */,
+				50E37D422D27D0A900CC9576 /* Debug */,
+				50E37D432D27D0A900CC9576 /* Release */,
 			);
 			defaultConfigurationIsVisible = 0;
 			defaultConfigurationName = Release;
@@ -328,18 +340,18 @@
 /* End XCConfigurationList section */
 
 /* Begin XCLocalSwiftPackageReference section */
-		5088A29E2D269C3400180479 /* XCLocalSwiftPackageReference "../../TextKitAutoCompletion" */ = {
+		50E37D442D27D0D500CC9576 /* XCLocalSwiftPackageReference "../../TextKitAutoCompletion" */ = {
 			isa = XCLocalSwiftPackageReference;
 			relativePath = ../../TextKitAutoCompletion;
 		};
 /* End XCLocalSwiftPackageReference section */
 
 /* Begin XCSwiftPackageProductDependency section */
-		5088A29F2D269C3400180479 /* TextKitAutoCompletion */ = {
+		50E37D452D27D0D500CC9576 /* TextKitAutoCompletion */ = {
 			isa = XCSwiftPackageProductDependency;
 			productName = TextKitAutoCompletion;
 		};
 /* End XCSwiftPackageProductDependency section */
 	};
-	rootObject = 5088A2372D269BDB00180479 /* Project object */;
+	rootObject = 50E37D2C2D27D0A800CC9576 /* Project object */;
 }

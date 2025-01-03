@@ -16,7 +16,9 @@ let package = Package(
     ],
     targets: [
         .target(
-            name: "TextKitAutoCompletion"),
+            name: "TextKitAutoCompletion",
+            dependencies: ["Omnibar"]
+        ),
         .testTarget(
             name: "TextKitAutoCompletionTests",
             dependencies: ["TextKitAutoCompletion"]

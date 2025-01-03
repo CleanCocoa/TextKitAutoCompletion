@@ -3,7 +3,6 @@
 import AppKit
 
 /// Formal protocol definition for `NSTextView`'s completion API, extracted from `NSTextView` including documentation.
-@MainActor
 public protocol TextKitAutoCompletion: AnyObject {
     /// The partial range from the most recent beginning of a word up to the insertion point.
     ///
