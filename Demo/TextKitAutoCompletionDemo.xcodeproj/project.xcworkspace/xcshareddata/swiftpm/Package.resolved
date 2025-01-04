@@ -6,17 +6,8 @@
       "kind" : "remoteSourceControl",
       "location" : "https://github.com/CleanCocoa/Omnibar",
       "state" : {
-        "revision" : "b3f1a2a549fb022e4e1fdb64902359819c1558a4",
-        "version" : "0.21.0"
-      }
-    },
-    {
-      "identity" : "rxswift",
-      "kind" : "remoteSourceControl",
-      "location" : "https://github.com/ReactiveX/RxSwift.git",
-      "state" : {
-        "revision" : "c7c7d2cf50a3211fe2843f76869c698e4e417930",
-        "version" : "6.8.0"
+        "revision" : "19509e2fd4adcf790c881ddbbf717c3b595d242f",
+        "version" : "1.0.0"
       }
     }
   ],

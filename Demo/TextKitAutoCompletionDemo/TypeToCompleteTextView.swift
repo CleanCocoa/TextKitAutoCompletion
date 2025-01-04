@@ -17,7 +17,11 @@ class TypeToCompleteTextView: NSTextView {
         }
     }
 
-    var completionController: CompletionController?
+    var completionController: CompletionController? {
+        didSet {
+            oldValue?.close()
+        }
+    }
 
     override func complete(_ sender: Any?) {
         guard let window = self.window else { preconditionFailure("Views are expected to have windows") }
@@ -39,6 +43,13 @@ class TypeToCompleteTextView: NSTextView {
             forTextView: self
         )
     }
+
+    override func insertCompletion(_ word: String, forPartialWordRange charRange: NSRange, movement: Int, isFinal flag: Bool) {
+        super.insertCompletion(word, forPartialWordRange: charRange, movement: movement, isFinal: flag)
+        if flag {
+            completionController = nil
+        }
+    }
 }
 
 class CompletionController {
@@ -50,7 +61,7 @@ class CompletionController {
         return popover
     }()
 
-    deinit {
+    func close() {
         popover.close()
     }
 
@@ -66,5 +77,6 @@ class CompletionController {
         rect.size.width = max(rect.size.width, 1)  // Zero-width rect will be discarded and the popover will resort to showing on the view's edge.
         popover.show(relativeTo: rect, of: textView, preferredEdge: .minY)
         controller.showCompletions(completions)
+        controller.drive(textKitAutoCompletion: textView)
     }
 }

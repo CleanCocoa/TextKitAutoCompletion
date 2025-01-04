@@ -2,7 +2,4 @@
 
 import AppKit
 
-@main
-class AppDelegate: NSObject, NSApplicationDelegate {
-    @IBOutlet var window: NSWindow!
-}
+extension NSTextView: TextKitAutoCompletion { }

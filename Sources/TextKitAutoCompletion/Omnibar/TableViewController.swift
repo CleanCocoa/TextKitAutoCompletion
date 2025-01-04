@@ -2,7 +2,7 @@
 
 import AppKit
 
-protocol SelectsWord: AnyObject {
+protocol SelectsWordFromSuggestions: AnyObject {
     func select(word: Word)
 }
 
@@ -14,7 +14,7 @@ class TableViewController: NSViewController, NSTableViewDataSource, NSTableViewD
 
     lazy var tableView = NSTableView()
 
-    weak var wordSelector: SelectsWord?
+    weak var wordSelector: SelectsWordFromSuggestions?
     
     private var words: [String] = [] {
         didSet {

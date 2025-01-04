@@ -12,7 +12,7 @@ let package = Package(
             targets: ["TextKitAutoCompletion"]),
     ],
     dependencies: [
-        .package(url: "https://github.com/CleanCocoa/Omnibar", from: "0.19.0"),
+        .package(url: "https://github.com/CleanCocoa/Omnibar", from: "1.0.0"),
     ],
     targets: [
         .target(
