@@ -10,7 +10,7 @@ where Adaptee: TextKitAutoCompletion {
     var partialWordRange: NSRange
 
     init(
-        adaptee: TextKitAutoCompletion,
+        adaptee: Adaptee,
         word: String,
         partialWordRange: NSRange
     ) {
@@ -29,11 +29,16 @@ where Adaptee: TextKitAutoCompletion {
     }
 
     func omnibar(_ omnibar: Omnibar, didChangeContent contentChange: OmnibarContentChange, method: ChangeMethod) {
-        // TODO: get this to fire when selection changes
+        adaptee.insertCompletion(
+            contentChange.string,
+            forPartialWordRange: partialWordRange,
+            movement: .other,
+            isFinal: false
+        )
     }
 
     func omnibar(_ omnibar: Omnibar, commit text: String) {
-        textKitAutoCompletion.insertCompletion(
+        adaptee.insertCompletion(
             text,
             forPartialWordRange: partialWordRange,
             movement: .return,
@@ -43,12 +48,13 @@ where Adaptee: TextKitAutoCompletion {
 }
 
 extension OmnibarTextKitAutoCompletionAdapter where Adaptee: NSTextView {
-    convenience init(textView: NSTextView) {
-        guard let textStorage = textView.textStorage else { preconditionFailure("NSTextView should have a text storage") }
+    @MainActor
+    convenience init(textView adaptee: Adaptee) {
+        guard let textStorage = adaptee.textStorage else { preconditionFailure("NSTextView should have a text storage") }
         self.init(
-            adaptee: textView,
-            word: textStorage.mutableString.substring(with: textView.rangeForUserCompletion),
-            partialWordRange: textView.rangeForUserCompletion
+            adaptee: adaptee,
+            word: textStorage.mutableString.substring(with: adaptee.rangeForUserCompletion),
+            partialWordRange: adaptee.rangeForUserCompletion
         )
     }
 }

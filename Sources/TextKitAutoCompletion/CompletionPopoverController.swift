@@ -28,9 +28,11 @@ public class CompletionPopoverController: NSViewController {
         stackView.addArrangedSubview(tableViewController.view)
 
         omnibarController.omnibar.omnibarContentChangeDelegate = self
+        omnibarController.omnibar.moveFromOmnibar = MoveFromOmnibar(wrapping: tableViewController)
         omnibarController.searchHandler = filterService
-        omnibarController.selectionHandler = tableViewController
-        tableViewController.wordSelector = omnibarController
+        tableViewController.selectWord = SelectWord { [weak omnibarController] selectedWord in
+            omnibarController?.display(selectedWord: selectedWord)
+        }
     }
 
     public func showCompletions(_ completions: [String]) {
@@ -38,22 +40,16 @@ public class CompletionPopoverController: NSViewController {
         filterService.displayAll()
     }
 
-    private weak var textKitAutoCompletion: TextKitAutoCompletion?
+    private var adapter: OmnibarTextKitAutoCompletionAdapter<NSTextView>?
 
-    public func drive(textKitAutoCompletion: any TextKitAutoCompletion) {
-        self.textKitAutoCompletion = textKitAutoCompletion
+    public func driveAutoCompletion(textView: NSTextView) {
+        self.adapter = OmnibarTextKitAutoCompletionAdapter(textView: textView)
     }
 }
 
-// TODO: Forward selectionIndex to TextKitAutoCompletion
-
 extension CompletionPopoverController: @preconcurrency OmnibarContentChangeDelegate {
     public func omnibarDidCancelOperation(_ omnibar: Omnibar) {
-        assert(textKitAutoCompletion != nil)
-        guard let textKitAutoCompletion else { return }
-        let originalText = "x" // TODO: Store this during the completion session
-        let originalWordRange = NSRange(location: 0, length: 1)  // TODO: Store this during the completion session
-        textKitAutoCompletion.insertCompletion(originalText, forPartialWordRange: originalWordRange, movement: .cancel, isFinal: true)
+        adapter?.omnibarDidCancelOperation(omnibar)
     }
 
     public func omnibar(
@@ -61,26 +57,14 @@ extension CompletionPopoverController: @preconcurrency OmnibarContentChangeDeleg
         didChangeContent contentChange: OmnibarContentChange,
         method: ChangeMethod
     ) {
-        assert(textKitAutoCompletion != nil)
+        adapter?.omnibar(omnibar, didChangeContent: contentChange, method: method)
+        guard method != .programmaticReplacement else { return }
         omnibarController.searchHandler?.search(
             for: contentChange.text,
             offerSuggestion: method == .appending)
     }
 
-    public func omnibarSelectNext(_ omnibar: Omnibar) {
-        assert(textKitAutoCompletion != nil)
-        omnibarController.selectionHandler?.selectNext()
-    }
-
-    public func omnibarSelectPrevious(_ omnibar: Omnibar) {
-        assert(textKitAutoCompletion != nil)
-        omnibarController.selectionHandler?.selectPrevious()
-    }
-
     public func omnibar(_ omnibar: Omnibar, commit text: String) {
-        assert(textKitAutoCompletion != nil)
-        guard let textKitAutoCompletion else { return }
-        let originalWordRange = NSRange(location: 0, length: 1)  // TODO: Store this during the completion session
-        textKitAutoCompletion.insertCompletion(text, forPartialWordRange: originalWordRange, movement: .return, isFinal: true)
+        adapter?.omnibar(omnibar, commit: text)
     }
 }

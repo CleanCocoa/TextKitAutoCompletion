@@ -10,12 +10,12 @@ extension NSUserInterfaceItemIdentifier {
     static var tableCellView: NSUserInterfaceItemIdentifier { return .init(rawValue: "ExTableCellView") }
 }
 
-class TableViewController: NSViewController, NSTableViewDataSource, NSTableViewDelegate, @preconcurrency DisplaysWords, @preconcurrency SelectsResult {
+class TableViewController: NSViewController, NSTableViewDataSource, NSTableViewDelegate, @preconcurrency DisplaysWords {
 
     lazy var tableView = NSTableView()
 
-    weak var wordSelector: SelectsWordFromSuggestions?
-    
+    var selectWord: SelectWord = SelectWord { _ in /* no op */ }
+
     private var words: [String] = [] {
         didSet {
             tableView.reloadData()
@@ -67,7 +67,7 @@ class TableViewController: NSViewController, NSTableViewDataSource, NSTableViewD
         }
     }
 
-    // MARK: - Table View Contents
+    // MARK: - Table View Delegate
 
     func numberOfRows(in tableView: NSTableView) -> Int {
         return words.count
@@ -100,9 +100,6 @@ class TableViewController: NSViewController, NSTableViewDataSource, NSTableViewD
         return cellView
     }
 
-
-    // MARK: Table View Selection
-
     func tableViewSelectionDidChange(_ notification: Notification) {
         guard let tableView = notification.object as? NSTableView else { return }
 
@@ -110,7 +107,17 @@ class TableViewController: NSViewController, NSTableViewDataSource, NSTableViewD
         guard tableView.selectedRow != programmaticallySelectedRow else { return }
 
         let word = words[tableView.selectedRow]
-        wordSelector?.select(word: word)
+        selectWord(word: word)
+    }
+}
+
+extension TableViewController {
+    func selectFirst() {
+        select(row: words.indices.first ?? -1)
+    }
+
+    func selectLast() {
+        select(row: words.indices.last ?? -1)
     }
 
     func selectPrevious() {

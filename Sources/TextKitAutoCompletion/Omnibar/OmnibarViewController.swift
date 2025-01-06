@@ -7,14 +7,9 @@ protocol SearchHandler: AnyObject {
     func search(for searchTerm: String, offerSuggestion: Bool)
 }
 
-protocol SelectsResult: AnyObject {
-    func selectNext()
-    func selectPrevious()
-}
-
 class OmnibarViewController: NSViewController {
+
     weak var searchHandler: SearchHandler?
-    weak var selectionHandler: SelectsResult?
 
     lazy var omnibar = Omnibar()
 
@@ -24,9 +19,9 @@ class OmnibarViewController: NSViewController {
     }
 }
 
-extension OmnibarViewController: @preconcurrency SelectsWordFromSuggestions {
-    func select(word: Word) {
-        omnibar.display(content: .selection(text: word))
+extension OmnibarViewController {
+    func display(selectedWord: Word) {
+        omnibar.display(content: .selection(text: selectedWord))
     }
 }
 

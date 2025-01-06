@@ -77,6 +77,6 @@ class CompletionController {
         rect.size.width = max(rect.size.width, 1)  // Zero-width rect will be discarded and the popover will resort to showing on the view's edge.
         popover.show(relativeTo: rect, of: textView, preferredEdge: .minY)
         controller.showCompletions(completions)
-        controller.drive(textKitAutoCompletion: textView)
+        controller.driveAutoCompletion(textView: textView)
     }
 }

@@ -3,7 +3,8 @@
 import AppKit
 
 /// Formal protocol definition for `NSTextView`'s completion API, extracted from `NSTextView` including documentation.
-public protocol TextKitAutoCompletion: Sendable {
+@MainActor
+public protocol TextKitAutoCompletion {
     /// The partial range from the most recent beginning of a word up to the insertion point.
     ///
     /// This value is intended to be used for the range argument in the text completion methods such as completions(forPartialWordRange:indexOfSelectedItem:).
