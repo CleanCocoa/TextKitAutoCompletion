@@ -27,7 +27,7 @@ public class CompletionPopoverController: NSViewController {
         stackView.addArrangedSubview(omnibarController.view)
         stackView.addArrangedSubview(tableViewController.view)
 
-        omnibarController.delegate = self
+        omnibarController.omnibar.omnibarContentChangeDelegate = self
         omnibarController.searchHandler = filterService
         omnibarController.selectionHandler = tableViewController
         tableViewController.wordSelector = omnibarController
@@ -47,7 +47,7 @@ public class CompletionPopoverController: NSViewController {
 
 // TODO: Forward selectionIndex to TextKitAutoCompletion
 
-extension CompletionPopoverController: @preconcurrency OmnibarDelegate {
+extension CompletionPopoverController: @preconcurrency OmnibarContentChangeDelegate {
     public func omnibarDidCancelOperation(_ omnibar: Omnibar) {
         assert(textKitAutoCompletion != nil)
         guard let textKitAutoCompletion else { return }
@@ -58,7 +58,7 @@ extension CompletionPopoverController: @preconcurrency OmnibarDelegate {
 
     public func omnibar(
         _ omnibar: Omnibar,
-        contentChange: OmnibarContentChange,
+        didChangeContent contentChange: OmnibarContentChange,
         method: ChangeMethod
     ) {
         assert(textKitAutoCompletion != nil)

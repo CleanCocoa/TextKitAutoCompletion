@@ -17,10 +17,6 @@ class OmnibarViewController: NSViewController {
     weak var selectionHandler: SelectsResult?
 
     lazy var omnibar = Omnibar()
-    weak var delegate: OmnibarDelegate? {
-        get { omnibar.omnibarDelegate }
-        set { omnibar.omnibarDelegate = newValue }
-    }
 
     override func loadView() {
         omnibar.translatesAutoresizingMaskIntoConstraints = false

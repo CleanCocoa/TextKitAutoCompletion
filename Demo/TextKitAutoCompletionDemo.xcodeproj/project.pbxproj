@@ -7,6 +7,7 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
+		509302CE2D296EEA0096B7C7 /* Omnibar in Frameworks */ = {isa = PBXBuildFile; productRef = 509302CD2D296EEA0096B7C7 /* Omnibar */; };
 		50E37D462D27D0D500CC9576 /* TextKitAutoCompletion in Frameworks */ = {isa = PBXBuildFile; productRef = 50E37D452D27D0D500CC9576 /* TextKitAutoCompletion */; };
 /* End PBXBuildFile section */
 
@@ -28,6 +29,7 @@
 			buildActionMask = 2147483647;
 			files = (
 				50E37D462D27D0D500CC9576 /* TextKitAutoCompletion in Frameworks */,
+				509302CE2D296EEA0096B7C7 /* Omnibar in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -71,6 +73,7 @@
 			name = TextKitAutoCompletionDemo;
 			packageProductDependencies = (
 				50E37D452D27D0D500CC9576 /* TextKitAutoCompletion */,
+				509302CD2D296EEA0096B7C7 /* Omnibar */,
 			);
 			productName = TextKitAutoCompletionDemo;
 			productReference = 50E37D342D27D0A800CC9576 /* TextKitAutoCompletionDemo.app */;
@@ -103,6 +106,7 @@
 			minimizedProjectReferenceProxies = 1;
 			packageReferences = (
 				50E37D442D27D0D500CC9576 /* XCLocalSwiftPackageReference "../../TextKitAutoCompletion" */,
+				509302CC2D296EEA0096B7C7 /* XCLocalSwiftPackageReference "../../Omnibar" */,
 			);
 			preferredProjectObjectVersion = 77;
 			productRefGroup = 50E37D352D27D0A800CC9576 /* Products */;
@@ -340,6 +344,10 @@
 /* End XCConfigurationList section */
 
 /* Begin XCLocalSwiftPackageReference section */
+		509302CC2D296EEA0096B7C7 /* XCLocalSwiftPackageReference "../../Omnibar" */ = {
+			isa = XCLocalSwiftPackageReference;
+			relativePath = ../../Omnibar;
+		};
 		50E37D442D27D0D500CC9576 /* XCLocalSwiftPackageReference "../../TextKitAutoCompletion" */ = {
 			isa = XCLocalSwiftPackageReference;
 			relativePath = ../../TextKitAutoCompletion;
@@ -347,6 +355,10 @@
 /* End XCLocalSwiftPackageReference section */
 
 /* Begin XCSwiftPackageProductDependency section */
+		509302CD2D296EEA0096B7C7 /* Omnibar */ = {
+			isa = XCSwiftPackageProductDependency;
+			productName = Omnibar;
+		};
 		50E37D452D27D0D500CC9576 /* TextKitAutoCompletion */ = {
 			isa = XCSwiftPackageProductDependency;
 			productName = TextKitAutoCompletion;
