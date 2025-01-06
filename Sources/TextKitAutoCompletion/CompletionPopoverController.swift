@@ -11,6 +11,8 @@ public class CompletionPopoverController: NSViewController {
         wordDisplay: self.tableViewController
     )
 
+    private var adapter: OmnibarTextKitAutoCompletionAdapter<NSTextView>?
+
     public override func loadView() {
         // Do not call super as we're assembling the view programmatically.
 
@@ -35,15 +37,10 @@ public class CompletionPopoverController: NSViewController {
         }
     }
 
-    public func showCompletions(_ completions: [String]) {
+    public func showCompletions(_ completions: [String], in textView: NSTextView) {
         filterService.updateWords(completions)
         filterService.displayAll()
-    }
-
-    private var adapter: OmnibarTextKitAutoCompletionAdapter<NSTextView>?
-
-    public func driveAutoCompletion(textView: NSTextView) {
-        self.adapter = OmnibarTextKitAutoCompletionAdapter(textView: textView)
+        adapter = OmnibarTextKitAutoCompletionAdapter(textView: textView)
     }
 }
 
