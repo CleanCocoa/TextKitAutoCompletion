@@ -25,18 +25,24 @@ class TypeToCompleteTextView: NSTextView {
 
     override func complete(_ sender: Any?) {
         guard let window = self.window else { preconditionFailure("Views are expected to have windows") }
-        completionController = CompletionController()
+
         let partialWordRange = self.rangeForUserCompletion
+        /// Unused by our approach; selection is reflected in the completion window directly.
         var indexOfSelectedItem: Int = -1
+
+        guard let completions = self.completions(
+            forPartialWordRange: partialWordRange,
+            indexOfSelectedItem: &indexOfSelectedItem
+        ) else { NSSound.beep(); return }
+
+        let completionController = CompletionController()
+        defer { self.completionController = completionController }
+
         let selectionRectInScreenCoordinates = self.firstRect(forCharacterRange: self.selectedRange(), actualRange: nil)
         let selectionRectInWindow = window.convertFromScreen(selectionRectInScreenCoordinates)
         let selectionRect = self.convert(selectionRectInWindow, from: nil)
-        completionController!.display(
-            completions: completions(
-                forPartialWordRange: partialWordRange,
-                indexOfSelectedItem: &indexOfSelectedItem
-            ) ?? ["test"],
-            indexOfSelectedItem: indexOfSelectedItem,
+        completionController.display(
+            completions: completions,
             forPartialWordRange: partialWordRange,
             originalString: self.attributedString().attributedSubstring(from: partialWordRange).string,
             relativeTo: selectionRect,
@@ -57,6 +63,7 @@ class CompletionController {
 
     lazy var popover: NSPopover = {
         let popover = NSPopover()
+        popover.behavior = .transient
         popover.contentViewController = controller
         return popover
     }()
@@ -67,7 +74,6 @@ class CompletionController {
 
     func display(
         completions: [String],
-        indexOfSelectedItem: Int,
         forPartialWordRange partialWordRange: NSRange,
         originalString: String,
         relativeTo rect: NSRect,
