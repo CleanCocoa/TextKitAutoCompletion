@@ -38,9 +38,13 @@ public class CompletionPopoverController: NSViewController {
     }
 
     public func showCompletions(_ completions: [String], in textView: NSTextView) {
+        guard let textStorage = textView.textStorage else { preconditionFailure("NSTextView should have a text storage") }
+        let word = textStorage.mutableString.substring(with: textView.rangeForUserCompletion)
+
         filterService.updateWords(completions)
         filterService.displayAll()
         adapter = OmnibarTextKitAutoCompletionAdapter(textView: textView)
+        omnibarController.omnibar.display(content: .prefix(text: word))
     }
 }
 
