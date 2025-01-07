@@ -23,7 +23,7 @@ class TypeToCompleteTextView: NSTextView {
         }
     }
 
-    var isCompleting: Bool { completionController != nil }
+    var isCompleting: Bool { completionController?.isCompleting ?? false }
 
     override func complete(_ sender: Any?) {
         guard let window = self.window else { preconditionFailure("Views are expected to have windows") }
@@ -59,6 +59,7 @@ class TypeToCompleteTextView: NSTextView {
         super.insertCompletion(word, forPartialWordRange: charRange, movement: movement, isFinal: flag)
 
         if flag {
+            completionController?.close()
             completionController = nil
         }
     }
@@ -75,9 +76,7 @@ class CompletionController: NSObject, NSPopoverDelegate {
         return popover
     }()
 
-    func close() {
-        popover.close()
-    }
+    private(set) var isCompleting = false
 
     func display(
         completions: [String],
@@ -86,13 +85,21 @@ class CompletionController: NSObject, NSPopoverDelegate {
         relativeTo rect: NSRect,
         forTextView textView: NSTextView
     ) {
+        defer { isCompleting = true }
         var rect = rect
         rect.size.width = max(rect.size.width, 1)  // Zero-width rect will be discarded and the popover will resort to showing on the view's edge.
         popover.show(relativeTo: rect, of: textView, preferredEdge: .minY)
         controller.showCompletions(completions, in: textView)
     }
 
+    func close() {
+        isCompleting = false
+        // Close popover after changing `isCompleting` so that `popoverWillClose(_:)` won't fire a cancelation.
+        popover.close()
+    }
+
     func popoverWillClose(_ notification: Notification) {
+        guard isCompleting else { return }
         controller.cancelOperation(self)
     }
 }
