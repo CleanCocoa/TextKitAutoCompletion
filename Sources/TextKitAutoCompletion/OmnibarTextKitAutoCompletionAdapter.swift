@@ -20,6 +20,10 @@ where Adaptee: TextKitAutoCompletion {
     }
 
     func omnibarDidCancelOperation(_ omnibar: Omnibar) {
+        cancel()
+    }
+
+    func cancel() {
         adaptee.insertCompletion(
             word,
             forPartialWordRange: partialWordRange,

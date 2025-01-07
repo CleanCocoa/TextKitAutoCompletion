@@ -23,6 +23,8 @@ class TypeToCompleteTextView: NSTextView {
         }
     }
 
+    var isCompleting: Bool { completionController != nil }
+
     override func complete(_ sender: Any?) {
         guard let window = self.window else { preconditionFailure("Views are expected to have windows") }
 
@@ -51,18 +53,23 @@ class TypeToCompleteTextView: NSTextView {
     }
 
     override func insertCompletion(_ word: String, forPartialWordRange charRange: NSRange, movement: Int, isFinal flag: Bool) {
+        // Closing the popover cancels completion via `insertCompletion(_, charRange: _, movement: .cancel, isFinal: true)`, but we also close the popover upon completion. To avoid accepting a completion, followed by an automatic cancel message, we need to (a) check whether we're still actively completing anything (this approach), or (b) implement reacting to the `NSPopover` closing differently.
+        guard isCompleting else { return }
+
         super.insertCompletion(word, forPartialWordRange: charRange, movement: movement, isFinal: flag)
+
         if flag {
             completionController = nil
         }
     }
 }
 
-class CompletionController {
+class CompletionController: NSObject, NSPopoverDelegate {
     lazy var controller = CompletionPopoverController()
 
     lazy var popover: NSPopover = {
         let popover = NSPopover()
+        popover.delegate = self
         popover.behavior = .transient
         popover.contentViewController = controller
         return popover
@@ -83,5 +90,9 @@ class CompletionController {
         rect.size.width = max(rect.size.width, 1)  // Zero-width rect will be discarded and the popover will resort to showing on the view's edge.
         popover.show(relativeTo: rect, of: textView, preferredEdge: .minY)
         controller.showCompletions(completions, in: textView)
+    }
+
+    func popoverWillClose(_ notification: Notification) {
+        controller.cancelOperation(self)
     }
 }

@@ -46,6 +46,10 @@ public class CompletionPopoverController: NSViewController {
         adapter = OmnibarTextKitAutoCompletionAdapter(textView: textView)
         omnibarController.omnibar.display(content: .prefix(text: word))
     }
+
+    public override func cancelOperation(_ sender: Any?) {
+        adapter?.cancel()
+    }
 }
 
 extension CompletionPopoverController: @preconcurrency OmnibarContentChangeDelegate {
