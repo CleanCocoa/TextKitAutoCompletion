@@ -35,6 +35,9 @@ public class CompletionPopoverController: NSViewController {
         tableViewController.selectWord = SelectWord { [weak omnibarController] selectedWord in
             omnibarController?.display(selectedWord: selectedWord)
         }
+        tableViewController.commitSelectedWord = { [weak self] selectedWord in
+            self?.adapter?.finishCompletion(text: selectedWord)
+        }
     }
 
     public func showCompletions(_ completions: [String], in textView: NSTextView) {
@@ -48,7 +51,7 @@ public class CompletionPopoverController: NSViewController {
     }
 
     public override func cancelOperation(_ sender: Any?) {
-        adapter?.cancel()
+        adapter?.cancelCompletion()
     }
 }
 

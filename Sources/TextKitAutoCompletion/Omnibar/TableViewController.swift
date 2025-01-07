@@ -10,12 +10,20 @@ class TableViewController: NSViewController, NSTableViewDataSource, NSTableViewD
 
     lazy var tableView = NSTableView()
 
+    var commitSelectedWord: (Word) -> Void = { _ in /* no op */ }
     var selectWord: SelectWord = SelectWord { _ in /* no op */ }
 
     private var words: [String] = [] {
         didSet {
             tableView.reloadData()
         }
+    }
+
+    var selectedWord: Word? {
+        let index = tableView.selectedRow
+        guard index > -1 else { return nil }
+        assert(index < words.count)
+        return words[index]
     }
 
     /// Cache of programmatic selections to avoid change events
@@ -46,6 +54,10 @@ class TableViewController: NSViewController, NSTableViewDataSource, NSTableViewD
         }
         scrollView.documentView = tableView
 
+        // Double-click to select (in case the user tabbed/clicked into the table view).
+        tableView.doubleAction = #selector(commitSelection(_:))
+        tableView.target = self
+
         scrollView.heightAnchor.constraint(greaterThanOrEqualToConstant: 100).isActive = true
 
         self.view = scrollView
@@ -61,6 +73,21 @@ class TableViewController: NSViewController, NSTableViewDataSource, NSTableViewD
             programmaticallySelectedRow = selectionIndex
             select(row: selectionIndex)
         }
+    }
+
+    // MARK: - Event handling
+
+    override func keyDown(with event: NSEvent) {
+        interpretKeyEvents([event])
+    }
+
+    override func insertNewline(_ sender: Any?) {
+        commitSelection(sender)
+    }
+
+    @IBAction func commitSelection(_ sender: Any?) {
+        guard let selectedWord else { return }
+        self.commitSelectedWord(selectedWord)
     }
 
     // MARK: - Table View Delegate
@@ -101,7 +128,7 @@ class TableViewController: NSViewController, NSTableViewDataSource, NSTableViewD
 
         // Skip programmatic changes
         guard tableView.selectedRow != programmaticallySelectedRow else { return }
-
+        guard let selectedWord else { return }
         let word = words[tableView.selectedRow]
         selectWord(word: word)
     }

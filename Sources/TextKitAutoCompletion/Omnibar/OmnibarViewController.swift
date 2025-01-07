@@ -8,7 +8,6 @@ protocol SearchHandler: AnyObject {
 }
 
 class OmnibarViewController: NSViewController {
-
     weak var searchHandler: SearchHandler?
 
     lazy var omnibar = Omnibar()
@@ -17,11 +16,13 @@ class OmnibarViewController: NSViewController {
         omnibar.translatesAutoresizingMaskIntoConstraints = false
         self.view = omnibar
     }
-}
 
-extension OmnibarViewController {
     func display(selectedWord: Word) {
         omnibar.display(content: .selection(text: selectedWord))
+    }
+
+    func commitOmnibarContents() {
+        omnibar.commit()
     }
 }
 

@@ -3,7 +3,7 @@
 import AppKit
 import Omnibar
 
-class OmnibarTextKitAutoCompletionAdapter<Adaptee>: OmnibarContentChangeDelegate
+class OmnibarTextKitAutoCompletionAdapter<Adaptee>
 where Adaptee: TextKitAutoCompletion {
     let adaptee: Adaptee
     fileprivate var word: String
@@ -19,11 +19,8 @@ where Adaptee: TextKitAutoCompletion {
         self.partialWordRange = partialWordRange
     }
 
-    func omnibarDidCancelOperation(_ omnibar: Omnibar) {
-        cancel()
-    }
-
-    func cancel() {
+    @MainActor
+    func cancelCompletion() {
         adaptee.insertCompletion(
             word,
             forPartialWordRange: partialWordRange,
@@ -32,22 +29,39 @@ where Adaptee: TextKitAutoCompletion {
         )
     }
 
-    func omnibar(_ omnibar: Omnibar, didChangeContent contentChange: OmnibarContentChange, method: ChangeMethod) {
-        adaptee.insertCompletion(
-            contentChange.string,
-            forPartialWordRange: partialWordRange,
-            movement: .other,
-            isFinal: false
-        )
-    }
-
-    func omnibar(_ omnibar: Omnibar, commit text: String) {
+    @MainActor
+    func finishCompletion(text: String) {
         adaptee.insertCompletion(
             text,
             forPartialWordRange: partialWordRange,
             movement: .return,
             isFinal: true
         )
+    }
+
+    @MainActor
+    func suggestCompletion(text: String) {
+        adaptee.insertCompletion(
+            text,
+            forPartialWordRange: partialWordRange,
+            // TextKit's completion system supports movement to change the selected completion candidate, or ends when using a non-movement key. We allow typing to refine suggestions, though.
+            movement: .other,
+            isFinal: false
+        )
+    }
+}
+
+extension OmnibarTextKitAutoCompletionAdapter: OmnibarContentChangeDelegate {
+    func omnibarDidCancelOperation(_ omnibar: Omnibar) {
+        cancelCompletion()
+    }
+
+    func omnibar(_ omnibar: Omnibar, didChangeContent contentChange: OmnibarContentChange, method: ChangeMethod) {
+        suggestCompletion(text: contentChange.string)
+    }
+
+    func omnibar(_ omnibar: Omnibar, commit text: String) {
+        finishCompletion(text: text)
     }
 }
 
