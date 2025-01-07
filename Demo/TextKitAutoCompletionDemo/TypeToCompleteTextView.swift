@@ -35,7 +35,7 @@ class TypeToCompleteTextView: NSTextView {
         let completions = self.completions(
             forPartialWordRange: partialWordRange,
             indexOfSelectedItem: &indexOfSelectedItem
-        )?.map(Word.init(value:))
+        )?.map(CompletionCandidate.init(_:))
         guard let completions else { NSSound.beep(); return }
 
         let completionController = CompletionController()
@@ -80,7 +80,7 @@ class CompletionController: NSObject, NSPopoverDelegate {
     private(set) var isCompleting = false
 
     func display(
-        completions: [Word],
+        completions: [CompletionCandidate],
         forPartialWordRange partialWordRange: NSRange,
         originalString: String,
         relativeTo rect: NSRect,

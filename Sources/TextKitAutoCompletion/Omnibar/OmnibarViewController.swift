@@ -17,7 +17,7 @@ class OmnibarViewController: NSViewController {
         self.view = omnibar
     }
 
-    func display(selectedWord: Word) {
+    func display(selectedWord: CompletionCandidate) {
         omnibar.display(content: .selection(text: selectedWord.value))
     }
 
@@ -26,10 +26,9 @@ class OmnibarViewController: NSViewController {
     }
 }
 
-extension OmnibarViewController: @preconcurrency DisplaysSuggestion {
-    func display(bestFit: String, forSearchTerm searchTerm: String) {
-        guard let suggestion = Suggestion(bestFit: bestFit, forSearchTerm: searchTerm) else { return }
-
+extension OmnibarViewController: @preconcurrency DisplaysBestFit {
+    func display(bestFit: CompletionCandidate, forSearchTerm searchTerm: String) {
+        guard let suggestion = OmnibarSuggestion(bestFit: bestFit.value, forSearchTerm: searchTerm) else { return }
         omnibar.display(content: suggestion.omnibarContent)
     }
 }

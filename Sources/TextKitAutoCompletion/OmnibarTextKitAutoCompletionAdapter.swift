@@ -6,23 +6,23 @@ import Omnibar
 class OmnibarTextKitAutoCompletionAdapter<Adaptee>
 where Adaptee: TextKitAutoCompletion {
     let adaptee: Adaptee
-    fileprivate var word: String
+    fileprivate var originalString: String
     fileprivate var partialWordRange: NSRange
 
     init(
         adaptee: Adaptee,
-        word: String,
+        originalString: String,
         partialWordRange: NSRange
     ) {
         self.adaptee = adaptee
-        self.word = word
+        self.originalString = originalString
         self.partialWordRange = partialWordRange
     }
 
     @MainActor
     func cancelCompletion() {
         adaptee.insertCompletion(
-            word,
+            originalString,
             forPartialWordRange: partialWordRange,
             movement: .cancel,
             isFinal: true
@@ -71,7 +71,7 @@ extension OmnibarTextKitAutoCompletionAdapter where Adaptee: NSTextView {
         guard let textStorage = adaptee.textStorage else { preconditionFailure("NSTextView should have a text storage") }
         self.init(
             adaptee: adaptee,
-            word: textStorage.mutableString.substring(with: adaptee.rangeForUserCompletion),
+            originalString: textStorage.mutableString.substring(with: adaptee.rangeForUserCompletion),
             partialWordRange: adaptee.rangeForUserCompletion
         )
     }

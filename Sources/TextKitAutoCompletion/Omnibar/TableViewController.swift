@@ -6,24 +6,24 @@ extension NSUserInterfaceItemIdentifier {
     static var tableCellView: NSUserInterfaceItemIdentifier { return .init(rawValue: "TKACTableCellView") }
 }
 
-class TableViewController: NSViewController, NSTableViewDataSource, NSTableViewDelegate, @preconcurrency DisplaysWords {
+class TableViewController: NSViewController, NSTableViewDataSource, NSTableViewDelegate, @preconcurrency DisplaysCompletionCandidates {
 
     lazy var tableView = NSTableView()
 
-    var commitSelectedWord: (Word) -> Void = { _ in /* no op */ }
-    var selectWord: SelectWord = SelectWord { _ in /* no op */ }
+    var commitSelectedCandidate: (CompletionCandidate) -> Void = { _ in /* no op */ }
+    var selectCandidate: SelectCompletionCandidate = SelectCompletionCandidate { _ in /* no op */ }
 
-    private var words: [Word] = [] {
+    private var completionCandidates: [CompletionCandidate] = [] {
         didSet {
             tableView.reloadData()
         }
     }
 
-    var selectedWord: Word? {
+    var selectedCompletionCandidate: CompletionCandidate? {
         let index = tableView.selectedRow
         guard index > -1 else { return nil }
-        assert(index < words.count)
-        return words[index]
+        assert(index < completionCandidates.count)
+        return completionCandidates[index]
     }
 
     /// Cache of programmatic selections to avoid change events
@@ -63,13 +63,13 @@ class TableViewController: NSViewController, NSTableViewDataSource, NSTableViewD
         self.view = scrollView
     }
 
-    func display(words: [Word], selecting selectedWord: Word?) {
+    func display(candidates: [CompletionCandidate], selecting selectedWord: CompletionCandidate?) {
 
-        self.words = words
+        self.completionCandidates = candidates
         self.programmaticallySelectedRow = nil
 
         if let selectedWord = selectedWord,
-           let selectionIndex = words.firstIndex(of: selectedWord) {
+           let selectionIndex = candidates.firstIndex(of: selectedWord) {
             programmaticallySelectedRow = selectionIndex
             select(row: selectionIndex)
         }
@@ -86,18 +86,18 @@ class TableViewController: NSViewController, NSTableViewDataSource, NSTableViewD
     }
 
     @IBAction func commitSelection(_ sender: Any?) {
-        guard let selectedWord else { return }
-        self.commitSelectedWord(selectedWord)
+        guard let selectedCompletionCandidate else { return }
+        self.commitSelectedCandidate(selectedCompletionCandidate)
     }
 
     // MARK: - Table View Delegate
 
     func numberOfRows(in tableView: NSTableView) -> Int {
-        return words.count
+        return completionCandidates.count
     }
 
     func tableView(_ tableView: NSTableView, objectValueFor tableColumn: NSTableColumn?, row: Int) -> Any? {
-        return words[row]
+        return completionCandidates[row]
     }
 
     func tableView(_ tableView: NSTableView, viewFor tableColumn: NSTableColumn?, row: Int) -> NSView? {
@@ -105,7 +105,7 @@ class TableViewController: NSViewController, NSTableViewDataSource, NSTableViewD
         cellView.identifier = tableColumn?.identifier
 
         let textField = NSTextField()
-        textField.stringValue = words[row].value
+        textField.stringValue = completionCandidates[row].value
         textField.isBordered = false
         textField.isEditable = false
         textField.drawsBackground = false
@@ -128,19 +128,19 @@ class TableViewController: NSViewController, NSTableViewDataSource, NSTableViewD
 
         // Skip programmatic changes
         guard tableView.selectedRow != programmaticallySelectedRow else { return }
-        guard let selectedWord else { return }
-        let word = words[tableView.selectedRow]
-        selectWord(word: word)
+        guard let selectedCompletionCandidate else { return }
+        let candidate = completionCandidates[tableView.selectedRow]
+        selectCandidate(candidate: candidate)
     }
 }
 
 extension TableViewController {
     func selectFirst() {
-        select(row: words.indices.first ?? -1)
+        select(row: completionCandidates.indices.first ?? -1)
     }
 
     func selectLast() {
-        select(row: words.indices.last ?? -1)
+        select(row: completionCandidates.indices.last ?? -1)
     }
 
     func selectPrevious() {
@@ -149,7 +149,7 @@ extension TableViewController {
     }
 
     func selectNext() {
-        guard tableView.selectedRow < words.count else { return }
+        guard tableView.selectedRow < completionCandidates.count else { return }
         select(row: tableView.selectedRow + 1)
     }
 

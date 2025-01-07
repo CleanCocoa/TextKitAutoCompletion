@@ -2,39 +2,39 @@
 
 import Dispatch
 
-protocol DisplaysWords {
-    func display(words: [Word], selecting selectedWord: Word?)
+protocol DisplaysCompletionCandidates {
+    func display(candidates: [CompletionCandidate], selecting selectedSuggestion: CompletionCandidate?)
 }
 
-protocol DisplaysSuggestion {
-    func display(bestFit: String, forSearchTerm searchTerm: String)
+protocol DisplaysBestFit {
+    func display(bestFit: CompletionCandidate, forSearchTerm searchTerm: String)
 }
 
 final class FilterService: @unchecked Sendable {
-    let suggestionDisplay: DisplaysSuggestion
-    let wordDisplay: DisplaysWords
+    let candidatesDisplay: DisplaysCompletionCandidates
+    let bestFitDisplay: DisplaysBestFit
 
     init(
-        suggestionDisplay: DisplaysSuggestion,
-        wordDisplay: DisplaysWords
+        candidatesDisplay: DisplaysCompletionCandidates,
+        suggestionDisplay: DisplaysBestFit
     ) {
-        self.suggestionDisplay = suggestionDisplay
-        self.wordDisplay = wordDisplay
+        self.candidatesDisplay = candidatesDisplay
+        self.bestFitDisplay = suggestionDisplay
     }
 
-    lazy var wordsModel: WordsModel = WordsModel()
+    lazy var viewModel = CompletionCandidatesModel()
     lazy var filterQueue: DispatchQueue = DispatchQueue(
         label: "filter-queue",
         qos: .userInitiated,
         attributes: .concurrent,
-        autoreleaseFrequency: DispatchQueue.AutoreleaseFrequency.inherit,
+        autoreleaseFrequency: .inherit,
         target: nil
     )
 
     fileprivate var pendingRequest: Cancellable<FilterResults>?
 
-    func updateWords(_ words: [Word]) {
-        wordsModel.words = words
+    func updateWords(_ words: [CompletionCandidate]) {
+        viewModel.candidates = words
     }
 }
 
@@ -50,10 +50,10 @@ extension FilterService: SearchHandler {
                 if offerSuggestion,
                    let bestFit = result.bestMatch
                 {
-                    self.suggestionDisplay.display(bestFit: bestFit.value, forSearchTerm: searchTerm)
-                    self.wordDisplay.display(words: result.words, selecting: bestFit)
+                    self.bestFitDisplay.display(bestFit: bestFit, forSearchTerm: searchTerm)
+                    self.candidatesDisplay.display(candidates: result.candidates, selecting: bestFit)
                 } else {
-                    self.wordDisplay.display(words: result.words, selecting: nil)
+                    self.candidatesDisplay.display(candidates: result.candidates, selecting: nil)
                 }
             }
         }
@@ -62,7 +62,7 @@ extension FilterService: SearchHandler {
         pendingRequest = newRequest
 
         filterQueue.async {
-            self.wordsModel.filtered(searchTerm: searchTerm, result: newRequest.handler)
+            self.viewModel.filtered(searchTerm: searchTerm, result: newRequest.handler)
         }
     }
 }

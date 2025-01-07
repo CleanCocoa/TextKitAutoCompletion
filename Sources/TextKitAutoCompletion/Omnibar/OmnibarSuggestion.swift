@@ -2,7 +2,7 @@
 
 import Omnibar
 
-struct Suggestion: Sendable {
+struct OmnibarSuggestion: Sendable {
     let text: String
     let appendix: String
 

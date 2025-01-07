@@ -7,8 +7,8 @@ public class CompletionPopoverController: NSViewController {
     lazy var omnibarController = OmnibarViewController()
     lazy var tableViewController = TableViewController()
     lazy var filterService = FilterService(
-        suggestionDisplay: self.omnibarController,
-        wordDisplay: self.tableViewController
+        candidatesDisplay: tableViewController,
+        suggestionDisplay: omnibarController
     )
 
     private var adapter: OmnibarTextKitAutoCompletionAdapter<NSTextView>?
@@ -32,15 +32,15 @@ public class CompletionPopoverController: NSViewController {
         omnibarController.omnibar.omnibarContentChangeDelegate = self
         omnibarController.omnibar.moveFromOmnibar = MoveFromOmnibar(wrapping: tableViewController)
         omnibarController.searchHandler = filterService
-        tableViewController.selectWord = SelectWord { [weak omnibarController] selectedWord in
-            omnibarController?.display(selectedWord: selectedWord)
+        tableViewController.selectCandidate = SelectCompletionCandidate { [weak omnibarController] selectedCandidate in
+            omnibarController?.display(selectedWord: selectedCandidate)
         }
-        tableViewController.commitSelectedWord = { [weak self] selectedWord in
-            self?.adapter?.finishCompletion(text: selectedWord.value)
+        tableViewController.commitSelectedCandidate = { [weak self] selectedCandidate in
+            self?.adapter?.finishCompletion(text: selectedCandidate.value)
         }
     }
 
-    public func showCompletions(_ completions: [Word], in textView: NSTextView) {
+    public func showCompletions(_ completions: [CompletionCandidate], in textView: NSTextView) {
         guard let textStorage = textView.textStorage else { preconditionFailure("NSTextView should have a text storage") }
         let word = textStorage.mutableString.substring(with: textView.rangeForUserCompletion)
 
