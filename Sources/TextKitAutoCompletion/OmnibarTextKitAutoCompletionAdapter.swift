@@ -6,8 +6,8 @@ import Omnibar
 class OmnibarTextKitAutoCompletionAdapter<Adaptee>: OmnibarContentChangeDelegate
 where Adaptee: TextKitAutoCompletion {
     let adaptee: Adaptee
-    var word: String
-    var partialWordRange: NSRange
+    fileprivate var word: String
+    fileprivate var partialWordRange: NSRange
 
     init(
         adaptee: Adaptee,
