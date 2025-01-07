@@ -4,6 +4,7 @@ import AppKit
 import TextKitAutoCompletion
 
 /// Offers live completion while typing, triggered by a `#`, in addition to manually invoking the completion UI via `F5` or `⌥+ESC`.
+@MainActor
 class TypeToCompleteTextView: NSTextView {
     override func insertText(_ string: Any, replacementRange: NSRange) {
         super.insertText(string, replacementRange: replacementRange)
@@ -17,13 +18,13 @@ class TypeToCompleteTextView: NSTextView {
         }
     }
 
-    var completionController: CompletionController? {
+    var completionPopoverController: CompletionPopoverController? {
         didSet {
             oldValue?.close()
         }
     }
 
-    var isCompleting: Bool { completionController?.isCompleting ?? false }
+    var isCompleting: Bool { completionPopoverController?.isCompleting ?? false }
 
     override func complete(_ sender: Any?) {
         let partialWordRange = self.rangeForUserCompletion
@@ -36,10 +37,10 @@ class TypeToCompleteTextView: NSTextView {
         )?.map(CompletionCandidate.init(_:))
         guard let completions else { NSSound.beep(); return }
 
-        let completionController = CompletionController()
-        defer { self.completionController = completionController }
+        let completionPopoverController = CompletionPopoverController()
+        defer { self.completionPopoverController = completionPopoverController }
 
-        completionController.display(
+        completionPopoverController.display(
             completionCandidates: completions,
             forPartialWordRange: partialWordRange,
             originalString: self.attributedString().attributedSubstring(from: partialWordRange).string,
@@ -54,75 +55,8 @@ class TypeToCompleteTextView: NSTextView {
         super.insertCompletion(word, forPartialWordRange: charRange, movement: movement, isFinal: flag)
 
         if flag {
-            completionController?.close()
-            completionController = nil
+            completionPopoverController?.close()
+            completionPopoverController = nil
         }
-    }
-}
-
-class CompletionController: NSObject, NSPopoverDelegate {
-    lazy var controller = CompletionPopoverController()
-
-    lazy var popover: NSPopover = {
-        let popover = NSPopover()
-        popover.delegate = self
-        popover.behavior = .transient
-        popover.contentViewController = controller
-        return popover
-    }()
-
-    private(set) var isCompleting = false
-
-    func display(
-        completionCandidates: [CompletionCandidate],
-        forPartialWordRange partialWordRange: NSRange,
-        originalString: String,
-        relativeToInsertionPointOfTextView textView: NSTextView
-    ) {
-        guard let window = textView.window else { preconditionFailure("Views on screen are expected to have windows") }
-
-        let selectionRectInScreenCoordinates = textView.firstRect(forCharacterRange: textView.selectedRange(), actualRange: nil)
-        let selectionRectInWindow = window.convertFromScreen(selectionRectInScreenCoordinates)
-        let selectionRectInTextView = textView.convert(selectionRectInWindow, from: nil)
-
-        display(
-            completionCandidates: completionCandidates,
-            forPartialWordRange: partialWordRange,
-            originalString: originalString,
-            relativeTo: selectionRectInTextView,
-            forTextView: textView
-        )
-    }
-
-    /// Display completion candidates in a text view.
-    ///
-    /// This mimicks, but doesn't match, the private `NSTextViewCompletionController` call, which would be:
-    ///
-    ///   -[NSTextViewCompletionController displayCompletions:indexOfSelectedItem:forPartialWordRange:originalString:atPoint:forTextView:]
-    func display(
-        completionCandidates: [CompletionCandidate],
-        forPartialWordRange partialWordRange: NSRange,
-        originalString: String,
-        relativeTo rect: NSRect,
-        forTextView textView: NSTextView
-    ) {
-        defer { isCompleting = true }
-        var rect = rect
-        // Insertion point is a zero-width rect, but these will be discarded and the popover will resort to showing on the view's edge. A height of _0_ I haven't encountered, yet, but for consistency make the same guarantee.
-        rect.size.width = max(rect.size.width, 1)
-        rect.size.height = max(rect.size.height, 1)
-        popover.show(relativeTo: rect, of: textView, preferredEdge: .minY)
-        controller.showCompletionCandidates(completionCandidates, in: textView)
-    }
-
-    func close() {
-        isCompleting = false
-        // Close popover after changing `isCompleting` so that `popoverWillClose(_:)` won't fire a cancelation.
-        popover.close()
-    }
-
-    func popoverWillClose(_ notification: Notification) {
-        guard isCompleting else { return }
-        controller.cancelOperation(self)
     }
 }

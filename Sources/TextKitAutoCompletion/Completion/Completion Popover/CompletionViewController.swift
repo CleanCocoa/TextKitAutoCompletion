@@ -3,7 +3,7 @@
 import AppKit
 import Omnibar
 
-public class CompletionPopoverController: NSViewController {
+class CompletionViewController: NSViewController {
     lazy var omnibarController = OmnibarViewController()
     lazy var candidateListViewController = CandidateListViewController()
     lazy var filterService = FilterService(
@@ -13,7 +13,7 @@ public class CompletionPopoverController: NSViewController {
 
     private var adapter: OmnibarTextKitAutoCompletionAdapter<NSTextView>?
 
-    public override func loadView() {
+    override func loadView() {
         // Do not call super as we're assembling the view programmatically.
 
         let stackView = NSStackView()
@@ -41,7 +41,7 @@ public class CompletionPopoverController: NSViewController {
         }
     }
 
-    public func showCompletionCandidates(_ candidates: [CompletionCandidate], in textView: NSTextView) {
+    func showCompletionCandidates(_ candidates: [CompletionCandidate], in textView: NSTextView) {
         guard let textStorage = textView.textStorage else { preconditionFailure("NSTextView should have a text storage") }
         let word = textStorage.mutableString.substring(with: textView.rangeForUserCompletion)
 
@@ -51,17 +51,17 @@ public class CompletionPopoverController: NSViewController {
         omnibarController.omnibar.display(content: .prefix(text: word))
     }
 
-    public override func cancelOperation(_ sender: Any?) {
+    override func cancelOperation(_ sender: Any?) {
         adapter?.cancelCompletion()
     }
 }
 
-extension CompletionPopoverController: @preconcurrency OmnibarContentChangeDelegate {
-    public func omnibarDidCancelOperation(_ omnibar: Omnibar) {
+extension CompletionViewController: @preconcurrency OmnibarContentChangeDelegate {
+    func omnibarDidCancelOperation(_ omnibar: Omnibar) {
         adapter?.omnibarDidCancelOperation(omnibar)
     }
 
-    public func omnibar(
+    func omnibar(
         _ omnibar: Omnibar,
         didChangeContent contentChange: OmnibarContentChange,
         method: ChangeMethod
@@ -73,7 +73,7 @@ extension CompletionPopoverController: @preconcurrency OmnibarContentChangeDeleg
             offerSuggestion: method == .appending)
     }
 
-    public func omnibar(_ omnibar: Omnibar, commit text: String) {
+    func omnibar(_ omnibar: Omnibar, commit text: String) {
         adapter?.omnibar(omnibar, commit: text)
     }
 }
