@@ -18,7 +18,7 @@ class OmnibarViewController: NSViewController {
     }
 
     func display(selectedWord: Word) {
-        omnibar.display(content: .selection(text: selectedWord))
+        omnibar.display(content: .selection(text: selectedWord.value))
     }
 
     func commitOmnibarContents() {

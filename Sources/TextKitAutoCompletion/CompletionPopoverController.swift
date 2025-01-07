@@ -36,11 +36,11 @@ public class CompletionPopoverController: NSViewController {
             omnibarController?.display(selectedWord: selectedWord)
         }
         tableViewController.commitSelectedWord = { [weak self] selectedWord in
-            self?.adapter?.finishCompletion(text: selectedWord)
+            self?.adapter?.finishCompletion(text: selectedWord.value)
         }
     }
 
-    public func showCompletions(_ completions: [String], in textView: NSTextView) {
+    public func showCompletions(_ completions: [Word], in textView: NSTextView) {
         guard let textStorage = textView.textStorage else { preconditionFailure("NSTextView should have a text storage") }
         let word = textStorage.mutableString.substring(with: textView.rangeForUserCompletion)
 

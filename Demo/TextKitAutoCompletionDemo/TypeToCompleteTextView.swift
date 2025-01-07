@@ -32,10 +32,11 @@ class TypeToCompleteTextView: NSTextView {
         /// Unused by our approach; selection is reflected in the completion window directly.
         var indexOfSelectedItem: Int = -1
 
-        guard let completions = self.completions(
+        let completions = self.completions(
             forPartialWordRange: partialWordRange,
             indexOfSelectedItem: &indexOfSelectedItem
-        ) else { NSSound.beep(); return }
+        )?.map(Word.init(value:))
+        guard let completions else { NSSound.beep(); return }
 
         let completionController = CompletionController()
         defer { self.completionController = completionController }
@@ -79,7 +80,7 @@ class CompletionController: NSObject, NSPopoverDelegate {
     private(set) var isCompleting = false
 
     func display(
-        completions: [String],
+        completions: [Word],
         forPartialWordRange partialWordRange: NSRange,
         originalString: String,
         relativeTo rect: NSRect,

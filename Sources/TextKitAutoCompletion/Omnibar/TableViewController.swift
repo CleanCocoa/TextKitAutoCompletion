@@ -13,7 +13,7 @@ class TableViewController: NSViewController, NSTableViewDataSource, NSTableViewD
     var commitSelectedWord: (Word) -> Void = { _ in /* no op */ }
     var selectWord: SelectWord = SelectWord { _ in /* no op */ }
 
-    private var words: [String] = [] {
+    private var words: [Word] = [] {
         didSet {
             tableView.reloadData()
         }
@@ -105,7 +105,7 @@ class TableViewController: NSViewController, NSTableViewDataSource, NSTableViewD
         cellView.identifier = tableColumn?.identifier
 
         let textField = NSTextField()
-        textField.stringValue = words[row]
+        textField.stringValue = words[row].value
         textField.isBordered = false
         textField.isEditable = false
         textField.drawsBackground = false

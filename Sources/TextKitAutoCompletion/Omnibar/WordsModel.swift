@@ -1,6 +1,22 @@
 //  Copyright © 2017 Christian Tietze. All rights reserved. Distributed under the MIT License.
 
-public typealias Word = String
+import Foundation
+
+public struct Word: Equatable, Sendable {
+    public let value: String
+
+    public init(value: String) {
+        self.value = value
+    }
+
+    func startsWith(_ prefix: String) -> Bool {
+        return value.hasPrefix(prefix, options: .caseInsensitive)
+    }
+
+    func contains(_ substring: String) -> Bool {
+        return value.range(of: substring, options: .caseInsensitive) != nil
+    }
+}
 
 struct FilterResults {
     let words: [Word]
@@ -19,40 +35,35 @@ struct WordsModel: Sendable {
         self.words = words
     }
 
-    func filtered(searchTerm: String, result: (FilterResults) -> Void) {
+    func filtered(
+        searchTerm: String,
+        result: (FilterResults) -> Void
+    ) {
         guard !searchTerm.isEmpty else {
             result(FilterResults(words: words))
             return
         }
 
-        let filteredWords = filter(haystack: words, searchTerm: searchTerm)
-        let bestMatch = bestFit(haystack: filteredWords, needleStartingWith: searchTerm)
+        let filteredWords = words.filter { $0.contains(searchTerm) }
+        let bestMatch = filteredWords.first { $0.startsWith(searchTerm) }
 
-        result(FilterResults(
-            words: filteredWords,
-            bestMatch: bestMatch))
+        result(
+            FilterResults(
+                words: filteredWords,
+                bestMatch: bestMatch
+            )
+        )
     }
 }
 
-func containsAll(_ searchWords: [String]) -> (Word) -> Bool {
-    return { word in
-        let word = word.lowercased()
-        for searchWord in searchWords {
-            if !word.contains(searchWord) { return false }
-        }
+extension String {
+    fileprivate func hasPrefix(
+        _ prefix: String,
+        options: CompareOptions
+    ) -> Bool {
+        guard let matchRange = self.range(of: prefix, options: options.union(.anchored))
+        else { return false }
+        assert(matchRange.lowerBound == self.startIndex, "Anchored range search should guarantee that the match starts at startIndex, not somewhere in the middle")
         return true
     }
-}
-
-func bestFit(haystack: [Word], needleStartingWith searchTerm: String) -> Word? {
-    guard !searchTerm.isEmpty else { return nil }
-
-    return haystack.first { $0.lowercased().hasPrefix(searchTerm.lowercased()) }
-}
-
-func filter(haystack: [Word], searchTerm: String) -> [Word] {
-    let searchWords = searchTerm.lowercased().components(separatedBy: .whitespacesAndNewlines)
-    let filtered = haystack.filter(containsAll(searchWords))
-
-    return filtered
 }

@@ -50,7 +50,7 @@ extension FilterService: SearchHandler {
                 if offerSuggestion,
                    let bestFit = result.bestMatch
                 {
-                    self.suggestionDisplay.display(bestFit: bestFit, forSearchTerm: searchTerm)
+                    self.suggestionDisplay.display(bestFit: bestFit.value, forSearchTerm: searchTerm)
                     self.wordDisplay.display(words: result.words, selecting: bestFit)
                 } else {
                     self.wordDisplay.display(words: result.words, selecting: nil)
