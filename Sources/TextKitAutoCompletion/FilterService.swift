@@ -11,8 +11,20 @@ protocol DisplaysBestFit {
 }
 
 final class FilterService: @unchecked Sendable {
+    fileprivate static let filterQueue = DispatchQueue(
+        label: "filter-queue",
+        qos: .userInitiated,
+        attributes: .concurrent,
+        autoreleaseFrequency: .inherit,
+        target: nil
+    )
+
     let candidatesDisplay: DisplaysCompletionCandidates
     let bestFitDisplay: DisplaysBestFit
+
+    private var candidates: [CompletionCandidate] = []
+
+    fileprivate var pendingRequest: Cancellable<FilterResults>?
 
     init(
         candidatesDisplay: DisplaysCompletionCandidates,
@@ -22,19 +34,8 @@ final class FilterService: @unchecked Sendable {
         self.bestFitDisplay = suggestionDisplay
     }
 
-    lazy var viewModel = CompletionCandidatesModel()
-    lazy var filterQueue: DispatchQueue = DispatchQueue(
-        label: "filter-queue",
-        qos: .userInitiated,
-        attributes: .concurrent,
-        autoreleaseFrequency: .inherit,
-        target: nil
-    )
-
-    fileprivate var pendingRequest: Cancellable<FilterResults>?
-
-    func updateWords(_ words: [CompletionCandidate]) {
-        viewModel.candidates = words
+    func update(candidates: [CompletionCandidate]) {
+        self.candidates = candidates
     }
 }
 
@@ -61,8 +62,45 @@ extension FilterService: SearchHandler {
         pendingRequest?.cancel()
         pendingRequest = newRequest
 
-        filterQueue.async {
-            self.viewModel.filtered(searchTerm: searchTerm, result: newRequest.handler)
+        FilterService.filterQueue.async { [candidates] in
+            newRequest.handler(result: .init(
+                fromCandidates: candidates,
+                searchTerm: searchTerm
+            ))
         }
+    }
+}
+
+
+struct FilterResults {
+    let candidates: [CompletionCandidate]
+    let bestMatch: CompletionCandidate?
+
+    init(
+        candidates: [CompletionCandidate],
+        bestMatch: CompletionCandidate? = nil
+    ) {
+        self.candidates = candidates
+        self.bestMatch = bestMatch
+    }
+}
+
+extension FilterResults {
+    init(
+        fromCandidates candidates: [CompletionCandidate],
+        searchTerm: String
+    ) {
+        guard !searchTerm.isEmpty else {
+            self.init(candidates: candidates, bestMatch: nil)
+            return
+        }
+
+        let filteredCandidates = candidates.filter { $0.contains(searchTerm) }
+        let bestMatch = filteredCandidates.first { $0.startsWith(searchTerm) }
+
+        self.init(
+            candidates: filteredCandidates,
+            bestMatch: bestMatch
+        )
     }
 }

@@ -90,7 +90,7 @@ class CompletionController: NSObject, NSPopoverDelegate {
         var rect = rect
         rect.size.width = max(rect.size.width, 1)  // Zero-width rect will be discarded and the popover will resort to showing on the view's edge.
         popover.show(relativeTo: rect, of: textView, preferredEdge: .minY)
-        controller.showCompletions(completions, in: textView)
+        controller.showCompletionCandidates(completionCandidates, in: textView)
     }
 
     func close() {
