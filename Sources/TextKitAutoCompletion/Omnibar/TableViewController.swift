@@ -2,10 +2,6 @@
 
 import AppKit
 
-protocol SelectsWordFromSuggestions: AnyObject {
-    func select(word: Word)
-}
-
 extension NSUserInterfaceItemIdentifier {
     static var tableCellView: NSUserInterfaceItemIdentifier { return .init(rawValue: "ExTableCellView") }
 }
