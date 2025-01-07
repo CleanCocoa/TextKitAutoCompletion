@@ -3,7 +3,7 @@
 import AppKit
 
 extension NSUserInterfaceItemIdentifier {
-    static var tableCellView: NSUserInterfaceItemIdentifier { return .init(rawValue: "ExTableCellView") }
+    static var tableCellView: NSUserInterfaceItemIdentifier { return .init(rawValue: "TKACTableCellView") }
 }
 
 class TableViewController: NSViewController, NSTableViewDataSource, NSTableViewDelegate, @preconcurrency DisplaysWords {
