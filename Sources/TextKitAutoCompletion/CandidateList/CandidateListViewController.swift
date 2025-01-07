@@ -6,7 +6,7 @@ extension NSUserInterfaceItemIdentifier {
     static var tableCellView: NSUserInterfaceItemIdentifier { return .init(rawValue: "TKACTableCellView") }
 }
 
-class TableViewController: NSViewController, NSTableViewDataSource, NSTableViewDelegate, @preconcurrency DisplaysCompletionCandidates {
+class CandidateListViewController: NSViewController, NSTableViewDataSource, NSTableViewDelegate, @preconcurrency DisplaysCompletionCandidates {
 
     lazy var tableView = NSTableView()
 
@@ -134,7 +134,7 @@ class TableViewController: NSViewController, NSTableViewDataSource, NSTableViewD
     }
 }
 
-extension TableViewController {
+extension CandidateListViewController {
     func selectFirst() {
         select(row: completionCandidates.indices.first ?? -1)
     }

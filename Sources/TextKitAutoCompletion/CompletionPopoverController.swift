@@ -5,9 +5,9 @@ import Omnibar
 
 public class CompletionPopoverController: NSViewController {
     lazy var omnibarController = OmnibarViewController()
-    lazy var tableViewController = TableViewController()
+    lazy var candidateListViewController = CandidateListViewController()
     lazy var filterService = FilterService(
-        candidatesDisplay: tableViewController,
+        candidatesDisplay: candidateListViewController,
         suggestionDisplay: omnibarController
     )
 
@@ -27,15 +27,16 @@ public class CompletionPopoverController: NSViewController {
         stackView.widthAnchor.constraint(greaterThanOrEqualToConstant: 200).isActive = true
 
         stackView.addArrangedSubview(omnibarController.view)
-        stackView.addArrangedSubview(tableViewController.view)
+        stackView.addArrangedSubview(candidateListViewController.view)
 
         omnibarController.omnibar.omnibarContentChangeDelegate = self
-        omnibarController.omnibar.moveFromOmnibar = MoveFromOmnibar(wrapping: tableViewController)
+        omnibarController.omnibar.moveFromOmnibar = MoveFromOmnibar(wrapping: candidateListViewController)
         omnibarController.searchHandler = filterService
-        tableViewController.selectCandidate = SelectCompletionCandidate { [weak omnibarController] selectedCandidate in
+
+        candidateListViewController.selectCandidate = SelectCompletionCandidate { [weak omnibarController] selectedCandidate in
             omnibarController?.display(selectedWord: selectedCandidate)
         }
-        tableViewController.commitSelectedCandidate = { [weak self] selectedCandidate in
+        candidateListViewController.commitSelectedCandidate = { [weak self] selectedCandidate in
             self?.adapter?.finishCompletion(text: selectedCandidate.value)
         }
     }
