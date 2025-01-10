@@ -9,12 +9,17 @@ class TypeToCompleteTextView: NSTextView {
     override func insertText(_ string: Any, replacementRange: NSRange) {
         super.insertText(string, replacementRange: replacementRange)
 
-        // `insertText(_:replacementRange:)` accepts both NSString and NSAttributedString, so we need to unwrap this.
-        let string = (string as? String)
-            ?? (string as? NSAttributedString)?.string
-
-        if string == "#" {
+        if isCompleting {
+            // Forward typing in text view *during* completion to the completion UI, live-updating suggestions.
             complete(self)
+        } else {
+            // `insertText(_:replacementRange:)` accepts both NSString and NSAttributedString, so we need to unwrap this.
+            let string = (string as? String)
+                ?? (string as? NSAttributedString)?.string
+
+            if string == "#" {
+                complete(self)
+            }
         }
     }
 
@@ -49,13 +54,20 @@ class TypeToCompleteTextView: NSTextView {
         )?.map(CompletionCandidate.init(_:))
         guard let completions else { NSSound.beep(); return }
 
-        let completionPopoverController = CompletionPopoverController()
-        defer { self.completionPopoverController = completionPopoverController }
+        let completionPopoverController = {
+            if let existingController = self.completionPopoverController {
+                return existingController
+            } else {
+                let newController = CompletionPopoverController()
+                self.completionPopoverController = newController
+                return newController
+            }
+        }()
 
         completionPopoverController.display(
             completionCandidates: completions,
             forPartialWordRange: partialWordRange,
-            originalString: self.attributedString().attributedSubstring(from: partialWordRange).string,
+            originalString: self.attributedString().attributedSubstring(from: partialWordRange).string,  // FIXME: use text storage
             relativeToInsertionPointOfTextView: self
         )
     }
@@ -69,6 +81,43 @@ class TypeToCompleteTextView: NSTextView {
         if flag {
             completionPopoverController?.close()
             completionPopoverController = nil
+        }
+    }
+
+    override func cancelOperation(_ sender: Any?) {
+        completionPopoverController?.close()
+        completionPopoverController = nil
+    }
+
+    override func moveUp(_ sender: Any?) {
+        if let completionPopoverController {
+            completionPopoverController.movementAction(movement: .up)
+        } else {
+            super.moveUp(sender)
+        }
+    }
+
+    override func moveDown(_ sender: Any?) {
+        if let completionPopoverController {
+            completionPopoverController.movementAction(movement: .down)
+        } else {
+            super.moveDown(sender)
+        }
+    }
+
+    override func moveToBeginningOfDocument(_ sender: Any?) {
+        if let completionPopoverController {
+            completionPopoverController.movementAction(movement: .top)
+        } else {
+            super.moveToBeginningOfDocument(sender)
+        }
+    }
+
+    override func moveToEndOfDocument(_ sender: Any?) {
+        if let completionPopoverController {
+            completionPopoverController.movementAction(movement: .bottom)
+        } else {
+            super.moveToEndOfDocument(sender)
         }
     }
 }

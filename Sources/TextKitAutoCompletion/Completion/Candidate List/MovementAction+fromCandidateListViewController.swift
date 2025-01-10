@@ -1,11 +1,9 @@
 //  Copyright © 2025 Christian Tietze. All rights reserved. Distributed under the MIT License.
 
-import Omnibar
-
-extension MoveFromOmnibar {
+extension MovementAction {
     init(wrapping candidateListViewController: CandidateListViewController) {
-        self.init { [candidateListViewController] event in
-            switch event.movement {
+        self.init { [candidateListViewController] movement in
+            switch movement {
             case .top:
                 candidateListViewController.selectFirst()
             case .bottom:

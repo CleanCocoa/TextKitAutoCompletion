@@ -1,9 +1,9 @@
 //  Copyright © 2025 Christian Tietze. All rights reserved. Distributed under the MIT License.
 
 import AppKit
-import Omnibar
 
-class OmnibarTextKitAutoCompletionAdapter<Adaptee>
+@MainActor
+class CompletionAdapter<Adaptee>
 where Adaptee: TextKitAutoCompletion {
     let adaptee: Adaptee
     fileprivate var originalString: String
@@ -51,22 +51,13 @@ where Adaptee: TextKitAutoCompletion {
     }
 }
 
-extension OmnibarTextKitAutoCompletionAdapter: OmnibarContentChangeDelegate {
-    func omnibarDidCancelOperation(_ omnibar: Omnibar) {
-        cancelCompletion()
-    }
-
-    func omnibar(_ omnibar: Omnibar, didChangeContent contentChange: OmnibarContentChange, method: ChangeMethod) {
-        suggestCompletion(text: contentChange.string)
-    }
-
-    func omnibar(_ omnibar: Omnibar, commit text: String) {
-        finishCompletion(text: text)
+extension CompletionAdapter: DisplaysBestFit {
+    func display(bestFit: CompletionCandidate, forSearchTerm searchTerm: String) {
+        suggestCompletion(text: bestFit.value)
     }
 }
 
-extension OmnibarTextKitAutoCompletionAdapter where Adaptee: NSTextView {
-    @MainActor
+extension CompletionAdapter where Adaptee: NSTextView {
     convenience init(textView adaptee: Adaptee) {
         guard let textStorage = adaptee.textStorage else { preconditionFailure("NSTextView should have a text storage") }
         self.init(

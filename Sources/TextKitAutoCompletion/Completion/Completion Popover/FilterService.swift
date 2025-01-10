@@ -2,11 +2,13 @@
 
 import Dispatch
 
-protocol DisplaysCompletionCandidates {
+@MainActor
+protocol DisplaysCompletionCandidates: AnyObject {
     func display(candidates: [CompletionCandidate], selecting selectedSuggestion: CompletionCandidate?)
 }
 
-protocol DisplaysBestFit {
+@MainActor
+protocol DisplaysBestFit: AnyObject {
     func display(bestFit: CompletionCandidate, forSearchTerm searchTerm: String)
 }
 
@@ -37,9 +39,7 @@ final class FilterService: @unchecked Sendable {
     func update(candidates: [CompletionCandidate]) {
         self.candidates = candidates
     }
-}
 
-extension FilterService: SearchHandler {
     func displayAll() {
         search(for: "", offerSuggestion: false)
     }

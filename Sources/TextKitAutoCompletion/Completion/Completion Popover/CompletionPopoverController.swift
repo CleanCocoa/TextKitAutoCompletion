@@ -5,14 +5,18 @@ import AppKit
 @MainActor
 public class CompletionPopoverController: NSObject, NSPopoverDelegate {
     lazy var controller = CompletionViewController()
+    public var movementAction: MovementAction { controller.movementAction }
 
     lazy var popover: NSPopover = {
         let popover = NSPopover()
         popover.delegate = self
-        popover.behavior = .transient
+        popover.behavior = .applicationDefined
         popover.contentViewController = controller
         return popover
     }()
+
+    /// Caches the previous key window and its responder to restore focus when the popover shows.
+    private var firstResponderBeforePopover: (window: NSWindow, firstResponder: NSResponder)?
 
     /// Reports whether the popover controller is currently in an active completion session.
     public private(set) var isCompleting = false
@@ -51,11 +55,16 @@ public class CompletionPopoverController: NSObject, NSPopoverDelegate {
         forTextView textView: NSTextView
     ) {
         defer { isCompleting = true }
-        var rect = rect
-        // Insertion point is a zero-width rect, but these will be discarded and the popover will resort to showing on the view's edge. A height of _0_ I haven't encountered, yet, but for consistency make the same guarantee.
-        rect.size.width = max(rect.size.width, 1)
-        rect.size.height = max(rect.size.height, 1)
-        popover.show(relativeTo: rect, of: textView, preferredEdge: .minY)
+
+        // Don't move the popover with the insertion point to reduce motion and offer visual anchor for the user to look at while they type to complete.
+        if !popover.isShown {
+            var rect = rect
+            // Insertion point is a zero-width rect, but these will be discarded and the popover will resort to showing on the view's edge. A height of _0_ I haven't encountered, yet, but for consistency make the same guarantee.
+            rect.size.width = max(rect.size.width, 1)
+            rect.size.height = max(rect.size.height, 1)
+            popover.show(relativeTo: rect, of: textView, preferredEdge: .minY)
+        }
+
         controller.showCompletionCandidates(completionCandidates, in: textView)
     }
 
@@ -68,5 +77,19 @@ public class CompletionPopoverController: NSObject, NSPopoverDelegate {
     public func popoverWillClose(_ notification: Notification) {
         guard isCompleting else { return }
         controller.cancelOperation(self)
+    }
+
+    public func popoverWillShow(_ notification: Notification) {
+        guard let keyWindow = NSApp.keyWindow,
+              let firstResponder = keyWindow.firstResponder
+        else { return }
+        firstResponderBeforePopover = (keyWindow, firstResponder)
+    }
+
+    public func popoverDidShow(_ notification: Notification) {
+        guard let (keyWindow, firstResponder) = firstResponderBeforePopover else { return }
+        defer { firstResponderBeforePopover = nil }
+        keyWindow.makeKey()
+        keyWindow.makeFirstResponder(firstResponder)
     }
 }

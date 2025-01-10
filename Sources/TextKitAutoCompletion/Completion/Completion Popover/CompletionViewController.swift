@@ -1,17 +1,33 @@
 //  Copyright © 2025 Christian Tietze. All rights reserved. Distributed under the MIT License.
 
 import AppKit
-import Omnibar
 
 class CompletionViewController: NSViewController {
-    lazy var omnibarController = OmnibarViewController()
+    class WeakDisplaysBestFitBox: DisplaysBestFit {
+        weak var base: DisplaysBestFit?
+
+        init(base: DisplaysBestFit? = nil) {
+            self.base = base
+        }
+
+        func display(bestFit: CompletionCandidate, forSearchTerm searchTerm: String) {
+            base?.display(bestFit: bestFit, forSearchTerm: searchTerm)
+        }
+    }
+
     lazy var candidateListViewController = CandidateListViewController()
+    lazy var movementAction = MovementAction(wrapping: candidateListViewController)
+    lazy var weakDisplaysBestFitBox = WeakDisplaysBestFitBox()
     lazy var filterService = FilterService(
         candidatesDisplay: candidateListViewController,
-        suggestionDisplay: omnibarController
+        suggestionDisplay: weakDisplaysBestFitBox
     )
 
-    private var adapter: OmnibarTextKitAutoCompletionAdapter<NSTextView>?
+    private var adapter: CompletionAdapter<NSTextView>? {
+        didSet {
+            weakDisplaysBestFitBox.base = adapter
+        }
+    }
 
     override func loadView() {
         // Do not call super as we're assembling the view programmatically.
@@ -26,15 +42,10 @@ class CompletionViewController: NSViewController {
 
         stackView.widthAnchor.constraint(greaterThanOrEqualToConstant: 200).isActive = true
 
-        stackView.addArrangedSubview(omnibarController.view)
         stackView.addArrangedSubview(candidateListViewController.view)
 
-        omnibarController.omnibar.omnibarContentChangeDelegate = self
-        omnibarController.omnibar.moveFromOmnibar = MoveFromOmnibar(wrapping: candidateListViewController)
-        omnibarController.searchHandler = filterService
-
-        candidateListViewController.selectCandidate = SelectCompletionCandidate { [weak omnibarController] selectedCandidate in
-            omnibarController?.display(selectedWord: selectedCandidate)
+        candidateListViewController.selectCandidate = SelectCompletionCandidate { [weak self] selectedCandidate in
+            self?.adapter?.suggestCompletion(text: selectedCandidate.value)
         }
         candidateListViewController.commitSelectedCandidate = { [weak self] selectedCandidate in
             self?.adapter?.finishCompletion(text: selectedCandidate.value)
@@ -47,33 +58,11 @@ class CompletionViewController: NSViewController {
 
         filterService.update(candidates: candidates)
         filterService.displayAll()
-        adapter = OmnibarTextKitAutoCompletionAdapter(textView: textView)
-        omnibarController.omnibar.display(content: .prefix(text: word))
+        adapter = adapter ?? CompletionAdapter(textView: textView)
+        assert(adapter?.adaptee === textView, "Reusing old adapter expects the textView to be the same")
     }
 
     override func cancelOperation(_ sender: Any?) {
         adapter?.cancelCompletion()
-    }
-}
-
-extension CompletionViewController: @preconcurrency OmnibarContentChangeDelegate {
-    func omnibarDidCancelOperation(_ omnibar: Omnibar) {
-        adapter?.omnibarDidCancelOperation(omnibar)
-    }
-
-    func omnibar(
-        _ omnibar: Omnibar,
-        didChangeContent contentChange: OmnibarContentChange,
-        method: ChangeMethod
-    ) {
-        adapter?.omnibar(omnibar, didChangeContent: contentChange, method: method)
-        guard method != .programmaticReplacement else { return }
-        omnibarController.searchHandler?.search(
-            for: contentChange.text,
-            offerSuggestion: method == .appending)
-    }
-
-    func omnibar(_ omnibar: Omnibar, commit text: String) {
-        adapter?.omnibar(omnibar, commit: text)
     }
 }
