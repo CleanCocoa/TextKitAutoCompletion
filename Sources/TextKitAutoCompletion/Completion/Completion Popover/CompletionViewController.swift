@@ -2,11 +2,10 @@
 
 import AppKit
 
-class CompletionViewController: NSViewController {
+class CompletionViewController: NSViewController, CandidateListViewControllerDelegate {
     lazy var candidateListViewController = CandidateListViewController()
-    lazy var movementAction = MovementAction(wrapping: candidateListViewController)
 
-    private var adapter: CompletionAdapter<NSTextView>?
+    private var adapter: CompletionAdapter?
 
     override func loadView() {
         // Do not call super as we're assembling the view programmatically.
@@ -23,6 +22,7 @@ class CompletionViewController: NSViewController {
 
         stackView.addArrangedSubview(candidateListViewController.view)
 
+        candidateListViewController.delegate = self
         candidateListViewController.selectCandidate = SelectCompletionCandidate { [weak self] selectedCandidate in
             self?.adapter?.suggestCompletion(text: selectedCandidate.value)
         }
@@ -41,7 +41,54 @@ class CompletionViewController: NSViewController {
         assert(adapter?.adaptee === textView, "Reusing old adapter expects the textView to be the same")
     }
 
+    func commitCandidateSelection() {
+        candidateListViewController.commitSelection(self)
+    }
+
+    override func keyDown(with event: NSEvent) {
+        interpretKeyEvents([event])
+    }
+
+    override func doCommand(by selector: Selector) {
+        // Don't call `super`: The default implementation escalates through the responder chain until NSWindow refuses to handle it with an NSBeep.
+
+        if self.responds(to: selector) {
+            perform(selector, with: nil)
+            return
+        }
+
+        switch selector {
+        case #selector(moveUp(_:)),
+            #selector(moveDown(_:)),
+            #selector(moveToBeginningOfDocument(_:)),
+            #selector(moveToEndOfDocument(_:)):
+            candidateListViewController.perform(selector, with: nil)
+        default:
+            adapter?.adaptee.doCommand(by: selector)
+        }
+    }
+
+    override func insertText(_ insertString: Any) {
+        adapter?.adaptee.insertText(insertString)
+    }
+
     override func cancelOperation(_ sender: Any?) {
         adapter?.cancelCompletion()
+    }
+
+    override func insertTab(_ sender: Any?) {
+        if candidateListViewController.hasSelectedCompletionCandidate {
+            commitCandidateSelection()
+        } else {
+            candidateListViewController.selectFirst()
+        }
+    }
+
+    override func insertBacktab(_ sender: Any?) {
+        adapter?.cancelCompletion()
+    }
+
+    override func insertNewline(_ sender: Any?) {
+        commitCandidateSelection()
     }
 }

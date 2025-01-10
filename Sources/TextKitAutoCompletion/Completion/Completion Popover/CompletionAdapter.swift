@@ -3,14 +3,13 @@
 import AppKit
 
 @MainActor
-class CompletionAdapter<Adaptee>
-where Adaptee: TextKitAutoCompletion {
-    let adaptee: Adaptee
+class CompletionAdapter {
+    let adaptee: NSTextView
     fileprivate var originalString: String
     fileprivate var partialWordRange: NSRange
 
     init(
-        adaptee: Adaptee,
+        adaptee: NSTextView,
         originalString: String,
         partialWordRange: NSRange
     ) {
@@ -51,13 +50,13 @@ where Adaptee: TextKitAutoCompletion {
     }
 }
 
-extension CompletionAdapter where Adaptee: NSTextView {
-    convenience init(textView adaptee: Adaptee) {
-        guard let textStorage = adaptee.textStorage else { preconditionFailure("NSTextView should have a text storage") }
+extension CompletionAdapter {
+    convenience init(textView: NSTextView) {
+        guard let textStorage = textView.textStorage else { preconditionFailure("NSTextView should have a text storage") }
         self.init(
-            adaptee: adaptee,
-            originalString: textStorage.mutableString.substring(with: adaptee.rangeForUserCompletion),
-            partialWordRange: adaptee.rangeForUserCompletion
+            adaptee: textView,
+            originalString: textStorage.mutableString.substring(with: textView.rangeForUserCompletion),
+            partialWordRange: textView.rangeForUserCompletion
         )
     }
 }

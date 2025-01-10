@@ -5,12 +5,11 @@ import AppKit
 @MainActor
 public class CompletionPopoverController: NSObject, NSPopoverDelegate {
     lazy var controller = CompletionViewController()
-    public var movementAction: MovementAction { controller.movementAction }
 
     lazy var popover: NSPopover = {
         let popover = NSPopover()
         popover.delegate = self
-        popover.behavior = .applicationDefined
+        popover.behavior = .transient
         popover.contentViewController = controller
         return popover
     }()
@@ -77,19 +76,5 @@ public class CompletionPopoverController: NSObject, NSPopoverDelegate {
     public func popoverWillClose(_ notification: Notification) {
         guard isCompleting else { return }
         controller.cancelOperation(self)
-    }
-
-    public func popoverWillShow(_ notification: Notification) {
-        guard let keyWindow = NSApp.keyWindow,
-              let firstResponder = keyWindow.firstResponder
-        else { return }
-        firstResponderBeforePopover = (keyWindow, firstResponder)
-    }
-
-    public func popoverDidShow(_ notification: Notification) {
-        guard let (keyWindow, firstResponder) = firstResponderBeforePopover else { return }
-        defer { firstResponderBeforePopover = nil }
-        keyWindow.makeKey()
-        keyWindow.makeFirstResponder(firstResponder)
     }
 }

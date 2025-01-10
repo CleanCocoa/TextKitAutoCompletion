@@ -6,8 +6,11 @@ extension NSUserInterfaceItemIdentifier {
     static var tableCellView: NSUserInterfaceItemIdentifier { return .init(rawValue: "TKACTableCellView") }
 }
 
-class CandidateListViewController: NSViewController, NSTableViewDataSource, NSTableViewDelegate {
+@MainActor
+protocol CandidateListViewControllerDelegate: NSResponder {}
 
+class CandidateListViewController: NSViewController, NSTableViewDataSource, NSTableViewDelegate {
+    weak var delegate: CandidateListViewControllerDelegate?
     lazy var tableView = NSTableView()
 
     var commitSelectedCandidate: (CompletionCandidate) -> Void = { _ in /* no op */ }
@@ -18,6 +21,8 @@ class CandidateListViewController: NSViewController, NSTableViewDataSource, NSTa
             tableView.reloadData()
         }
     }
+
+    var hasSelectedCompletionCandidate: Bool { selectedCompletionCandidate != nil }
 
     var selectedCompletionCandidate: CompletionCandidate? {
         let index = tableView.selectedRow
@@ -78,10 +83,11 @@ class CandidateListViewController: NSViewController, NSTableViewDataSource, NSTa
     // MARK: - Event handling
 
     override func keyDown(with event: NSEvent) {
-        interpretKeyEvents([event])
+        delegate?.interpretKeyEvents([event])
     }
 
     override func insertNewline(_ sender: Any?) {
+        assertionFailure("We expect return/enter to be handled by the delegate's interpretation of key events")
         commitSelection(sender)
     }
 
@@ -159,5 +165,23 @@ extension CandidateListViewController {
     private func select(row: Int) {
         tableView.selectRowIndexes(IndexSet(integer: row), byExtendingSelection: false)
         tableView.scrollRowToVisible(row)
+    }
+}
+
+extension CandidateListViewController {
+    override func moveUp(_ sender: Any?) {
+        selectPrevious()
+    }
+
+    override func moveDown(_ sender: Any?) {
+        selectNext()
+    }
+
+    override func moveToBeginningOfDocument(_ sender: Any?) {
+        selectFirst()
+    }
+
+    override func moveToEndOfDocument(_ sender: Any?) {
+        selectLast()
     }
 }

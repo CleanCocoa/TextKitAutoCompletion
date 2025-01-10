@@ -83,41 +83,4 @@ class TypeToCompleteTextView: NSTextView {
             completionPopoverController = nil
         }
     }
-
-    override func cancelOperation(_ sender: Any?) {
-        completionPopoverController?.close()
-        completionPopoverController = nil
-    }
-
-    override func moveUp(_ sender: Any?) {
-        if let completionPopoverController {
-            completionPopoverController.movementAction(movement: .up)
-        } else {
-            super.moveUp(sender)
-        }
-    }
-
-    override func moveDown(_ sender: Any?) {
-        if let completionPopoverController {
-            completionPopoverController.movementAction(movement: .down)
-        } else {
-            super.moveDown(sender)
-        }
-    }
-
-    override func moveToBeginningOfDocument(_ sender: Any?) {
-        if let completionPopoverController {
-            completionPopoverController.movementAction(movement: .top)
-        } else {
-            super.moveToBeginningOfDocument(sender)
-        }
-    }
-
-    override func moveToEndOfDocument(_ sender: Any?) {
-        if let completionPopoverController {
-            completionPopoverController.movementAction(movement: .bottom)
-        } else {
-            super.moveToEndOfDocument(sender)
-        }
-    }
 }
