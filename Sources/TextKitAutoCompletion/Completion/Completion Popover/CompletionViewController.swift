@@ -49,6 +49,8 @@ class CompletionViewController: NSViewController, CandidateListViewControllerDel
         interpretKeyEvents([event])
     }
 
+    // MARK: Forward key interpretations
+
     override func doCommand(by selector: Selector) {
         // Don't call `super`: The default implementation escalates through the responder chain until NSWindow refuses to handle it with an NSBeep.
 
@@ -71,6 +73,20 @@ class CompletionViewController: NSViewController, CandidateListViewControllerDel
     override func insertText(_ insertString: Any) {
         adapter?.adaptee.insertText(insertString)
     }
+
+    // MARK: Forward main menu items
+
+    override func supplementalTarget(forAction action: Selector, sender: Any?) -> Any? {
+        if let adapter, adapter.adaptee.responds(to: action) {
+            // Covers NSText methods: paste(_:), copy(_:), cut(_:), delete(_:); also font and styling settings
+            defer { cancelOperation(self) }
+            return adapter.adaptee
+        } else {
+            return nil 
+        }
+    }
+
+    // MARK: Completion shortcuts
 
     override func cancelOperation(_ sender: Any?) {
         adapter?.cancelCompletion()
