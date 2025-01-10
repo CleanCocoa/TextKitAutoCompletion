@@ -129,8 +129,7 @@ class CandidateListViewController: NSViewController, NSTableViewDataSource, NSTa
         // Skip programmatic changes
         guard tableView.selectedRow != programmaticallySelectedRow else { return }
         guard let selectedCompletionCandidate else { return }
-        let candidate = completionCandidates[tableView.selectedRow]
-        selectCandidate(candidate: candidate)
+        selectCandidate(candidate: selectedCompletionCandidate)
     }
 }
 
@@ -144,12 +143,16 @@ extension CandidateListViewController {
     }
 
     func selectPrevious() {
-        guard tableView.selectedRow > 0 else { return }
+        guard let firstRow = completionCandidates.indices.first,
+              tableView.selectedRow > firstRow
+        else { return }
         select(row: tableView.selectedRow - 1)
     }
 
     func selectNext() {
-        guard tableView.selectedRow < completionCandidates.count else { return }
+        guard let lastRow = completionCandidates.indices.last,
+              tableView.selectedRow < lastRow
+        else { return }
         select(row: tableView.selectedRow + 1)
     }
 
