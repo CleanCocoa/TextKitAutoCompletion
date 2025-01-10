@@ -3,31 +3,10 @@
 import AppKit
 
 class CompletionViewController: NSViewController {
-    class WeakDisplaysBestFitBox: DisplaysBestFit {
-        weak var base: DisplaysBestFit?
-
-        init(base: DisplaysBestFit? = nil) {
-            self.base = base
-        }
-
-        func display(bestFit: CompletionCandidate, forSearchTerm searchTerm: String) {
-            base?.display(bestFit: bestFit, forSearchTerm: searchTerm)
-        }
-    }
-
     lazy var candidateListViewController = CandidateListViewController()
     lazy var movementAction = MovementAction(wrapping: candidateListViewController)
-    lazy var weakDisplaysBestFitBox = WeakDisplaysBestFitBox()
-    lazy var filterService = FilterService(
-        candidatesDisplay: candidateListViewController,
-        suggestionDisplay: weakDisplaysBestFitBox
-    )
 
-    private var adapter: CompletionAdapter<NSTextView>? {
-        didSet {
-            weakDisplaysBestFitBox.base = adapter
-        }
-    }
+    private var adapter: CompletionAdapter<NSTextView>?
 
     override func loadView() {
         // Do not call super as we're assembling the view programmatically.
@@ -56,8 +35,8 @@ class CompletionViewController: NSViewController {
         guard let textStorage = textView.textStorage else { preconditionFailure("NSTextView should have a text storage") }
         let word = textStorage.mutableString.substring(with: textView.rangeForUserCompletion)
 
-        filterService.update(candidates: candidates)
-        filterService.displayAll()
+        candidateListViewController.display(candidates: candidates, selecting: nil)
+
         adapter = adapter ?? CompletionAdapter(textView: textView)
         assert(adapter?.adaptee === textView, "Reusing old adapter expects the textView to be the same")
     }

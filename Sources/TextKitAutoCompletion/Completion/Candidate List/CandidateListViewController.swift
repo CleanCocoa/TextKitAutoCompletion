@@ -6,7 +6,7 @@ extension NSUserInterfaceItemIdentifier {
     static var tableCellView: NSUserInterfaceItemIdentifier { return .init(rawValue: "TKACTableCellView") }
 }
 
-class CandidateListViewController: NSViewController, NSTableViewDataSource, NSTableViewDelegate, @preconcurrency DisplaysCompletionCandidates {
+class CandidateListViewController: NSViewController, NSTableViewDataSource, NSTableViewDelegate {
 
     lazy var tableView = NSTableView()
 

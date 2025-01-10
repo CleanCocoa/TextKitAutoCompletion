@@ -51,12 +51,6 @@ where Adaptee: TextKitAutoCompletion {
     }
 }
 
-extension CompletionAdapter: DisplaysBestFit {
-    func display(bestFit: CompletionCandidate, forSearchTerm searchTerm: String) {
-        suggestCompletion(text: bestFit.value)
-    }
-}
-
 extension CompletionAdapter where Adaptee: NSTextView {
     convenience init(textView adaptee: Adaptee) {
         guard let textStorage = adaptee.textStorage else { preconditionFailure("NSTextView should have a text storage") }
