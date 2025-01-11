@@ -74,13 +74,13 @@ class TypeToCompleteTextView: NSTextView {
         )
     }
 
-    override func insertCompletion(_ word: String, forPartialWordRange charRange: NSRange, movement: Int, isFinal flag: Bool) {
+    override func insertCompletion(_ word: String, forPartialWordRange charRange: NSRange, movement: Int, isFinal isFinishingCompletion: Bool) {
         // Closing the popover cancels completion via `insertCompletion(_, charRange: _, movement: .cancel, isFinal: true)`, but we also close the popover upon completion. To avoid accepting a completion, followed by an automatic cancel message, we need to (a) check whether we're still actively completing anything (this approach), or (b) implement reacting to the `NSPopover` closing differently.
         guard isCompleting else { return }
 
-        super.insertCompletion(word, forPartialWordRange: charRange, movement: movement, isFinal: flag)
+        super.insertCompletion(word, forPartialWordRange: charRange, movement: movement, isFinal: isFinishingCompletion)
 
-        if flag {
+        if isFinishingCompletion {
             completionPopoverController?.close()
             completionPopoverController = nil
         }
