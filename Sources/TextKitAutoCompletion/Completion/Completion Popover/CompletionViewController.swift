@@ -45,8 +45,13 @@ class CompletionViewController: NSViewController, CandidateListViewControllerDel
         }
     }
 
-    func show(completionCandidates: [CompletionCandidate]) {
+    func show(
+        completionCandidates: [CompletionCandidate],
+        forPartialWordRange partialWordRange: NSRange,
+        originalString: String
+    ) {
         candidateListViewController.display(candidates: completionCandidates, selecting: nil)
+        adapter.update(originalString: originalString, partialWordRange: partialWordRange)
     }
 
     func commitCandidateSelection() {

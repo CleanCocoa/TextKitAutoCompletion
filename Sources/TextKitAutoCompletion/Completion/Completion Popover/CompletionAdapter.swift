@@ -10,7 +10,15 @@ class CompletionAdapter: NSObject {
         get { proxy.delegate }
         set { proxy.delegate = newValue }
     }
+
+    /// The string that will be left/restored when completion is aborted.
+    ///
+    /// Use ``update(originalString:partialWordRange:)`` to reflect changes from typing during the autocompletion session.
     fileprivate var originalString: String
+
+    /// The string that will be left/restored when completion is aborted.
+    ///
+    /// Use ``update(originalString:partialWordRange:)`` to reflect changes from typing during the autocompletion session.
     fileprivate var partialWordRange: NSRange
 
     init(
@@ -32,6 +40,12 @@ class CompletionAdapter: NSObject {
             originalString: textStorage.mutableString.substring(with: textView.rangeForUserCompletion),
             partialWordRange: textView.rangeForUserCompletion
         )
+    }
+
+    /// Update what's considered the `originalString` (the string that'll be left when aborting completion) and the `partialWordRange` (the range that represents this original string to highlight the rest as a completion suggestion).
+    func update(originalString: String, partialWordRange: NSRange) {
+        self.originalString = originalString
+        self.partialWordRange = partialWordRange
     }
 }
 

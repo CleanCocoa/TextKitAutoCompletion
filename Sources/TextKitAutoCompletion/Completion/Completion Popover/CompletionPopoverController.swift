@@ -48,7 +48,11 @@ public class CompletionPopoverController: NSObject, NSPopoverDelegate {
             popover.show(relativeTo: popoverReferenceRect, of: textView, preferredEdge: .maxY)
         }
 
-        controller.show(completionCandidates: completionCandidates)
+        controller.show(
+            completionCandidates: completionCandidates,
+            forPartialWordRange: partialWordRange,
+            originalString: originalString
+        )
     }
 
     public func close() {
