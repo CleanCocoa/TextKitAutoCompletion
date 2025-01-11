@@ -39,6 +39,9 @@ class CandidateListViewController: NSViewController, NSTableViewDataSource, NSTa
         scrollView.translatesAutoresizingMaskIntoConstraints = false
         scrollView.hasVerticalScroller = true
         scrollView.hasHorizontalScroller = false
+        scrollView.drawsBackground = false
+        scrollView.backgroundColor = .clear
+        scrollView.borderType = .noBorder
 
         tableView.translatesAutoresizingMaskIntoConstraints = false
         tableView.delegate = self
@@ -106,6 +109,15 @@ class CandidateListViewController: NSViewController, NSTableViewDataSource, NSTa
         return completionCandidates[row]
     }
 
+    func tableView(_ tableView: NSTableView, rowViewForRow row: Int) -> NSTableRowView? {
+        let rowView = NSTableRowView()
+        rowView.clipsToBounds = true
+        rowView.wantsLayer = true
+        rowView.layer!.cornerRadius = 6  // Experimental value for 4pt inset in popover; 7 also looks okay but suspiciously is an odd number.
+        rowView.layer!.masksToBounds = true
+        return rowView
+    }
+
     func tableView(_ tableView: NSTableView, viewFor tableColumn: NSTableColumn?, row: Int) -> NSView? {
         let cellView = NSTableCellView()
         cellView.identifier = tableColumn?.identifier
@@ -120,8 +132,8 @@ class CandidateListViewController: NSViewController, NSTableViewDataSource, NSTa
         cellView.textField = textField
         cellView.addSubview(textField)
         NSLayoutConstraint.activate([
-            cellView.leadingAnchor.constraint(equalTo: textField.leadingAnchor, constant: 4),
-            cellView.trailingAnchor.constraint(equalTo: textField.trailingAnchor, constant: -4),
+            cellView.leadingAnchor.constraint(equalTo: textField.leadingAnchor, constant: 0),
+            cellView.trailingAnchor.constraint(equalTo: textField.trailingAnchor, constant: 0),
             cellView.topAnchor.constraint(equalTo: textField.topAnchor, constant: -4),
             cellView.bottomAnchor.constraint(equalTo: textField.bottomAnchor, constant: 4),
         ])

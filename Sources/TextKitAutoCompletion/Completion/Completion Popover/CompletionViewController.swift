@@ -26,8 +26,8 @@ class CompletionViewController: NSViewController, CandidateListViewControllerDel
 
         let stackView = NSStackView()
         stackView.orientation = .vertical
-        stackView.edgeInsets = .init(top: 10, left: 10, bottom: 10, right: 10)
-        stackView.spacing = 10
+        stackView.edgeInsets = .init(top: 4, left: 4, bottom: 4, right: 4)
+        stackView.spacing = 0
         stackView.alignment = .leading
         stackView.distribution = .fill
         self.view = stackView
