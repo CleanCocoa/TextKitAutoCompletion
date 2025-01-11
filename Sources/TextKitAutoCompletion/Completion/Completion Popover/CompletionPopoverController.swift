@@ -45,7 +45,7 @@ public class CompletionPopoverController: NSObject, NSPopoverDelegate {
             popoverReferenceRect.size.width = max(popoverReferenceRect.size.width, 1)
             popoverReferenceRect.size.height = max(popoverReferenceRect.size.height, 1)
 
-            popover.show(relativeTo: popoverReferenceRect, of: textView, preferredEdge: .minY)
+            popover.show(relativeTo: popoverReferenceRect, of: textView, preferredEdge: .maxY)
         }
 
         controller.show(completionCandidates: completionCandidates)
