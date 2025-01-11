@@ -56,6 +56,10 @@ extension CompletionAdapter {
         proxy.insertText(insertString)
     }
 
+    func deleteBackward(_ sender: Any?) {
+        proxy.deleteBackward(sender)
+    }
+
     func doCommand(by selector: Selector) {
         proxy.doCommand(by: selector)
     }

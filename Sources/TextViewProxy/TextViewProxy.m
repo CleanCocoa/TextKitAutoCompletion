@@ -19,6 +19,11 @@
     [self.textView insertText:insertString];
 }
 
+- (void)deleteBackward:(nullable id)sender
+{
+    [self.textView deleteBackward:sender];
+}
+
 - (void)doCommandBySelector:(SEL)selector
 {
     [self.delegate proxiedTextView:self.textView willInvokeSelector:selector];

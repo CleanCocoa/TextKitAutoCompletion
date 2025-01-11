@@ -24,6 +24,8 @@ NS_SWIFT_SENDABLE
 - (id)initWithTextView:(NSTextView *)textView;
 
 - (void)insertText:(id)insertString;
+- (void)deleteBackward:(nullable id)sender;
+
 - (void)doCommandBySelector:(SEL)selector;
 
 @end

@@ -23,6 +23,15 @@ class TypeToCompleteTextView: NSTextView {
         }
     }
 
+    override func deleteBackward(_ sender: Any?) {
+        super.deleteBackward(sender)
+
+        if isCompleting {
+            // Forward typing in text view *during* completion to the completion UI, live-updating suggestions.
+            complete(self)
+        }
+    }
+
     // ⚠️ Take good care of releasing this strong reference in response to lifecycle callbacks from the controller to break up the retain cycle.
     var completionPopoverController: CompletionPopoverController? {
         didSet {

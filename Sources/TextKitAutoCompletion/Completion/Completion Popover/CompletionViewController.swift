@@ -91,6 +91,10 @@ class CompletionViewController: NSViewController, CandidateListViewControllerDel
         adapter.insertText(insertString)
     }
 
+    override func deleteBackward(_ sender: Any?) {
+        adapter.deleteBackward(sender)
+    }
+
     // MARK: Forward main menu items
 
     nonisolated func proxiedTextView(
