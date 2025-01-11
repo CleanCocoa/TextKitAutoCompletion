@@ -53,7 +53,14 @@ class TypeToCompleteTextView: NSTextView {
             forPartialWordRange: partialWordRange,
             indexOfSelectedItem: &indexOfSelectedItem
         )?.map(CompletionCandidate.init(_:))
-        guard let completions else { NSSound.beep(); return }
+        guard let completions, !completions.isEmpty else {
+            if isCompleting {
+                completionPopoverController?.close()
+            } else {
+                NSSound.beep()
+            }
+            return
+        }
 
         let completionPopoverController = {
             if let existingController = self.completionPopoverController {
