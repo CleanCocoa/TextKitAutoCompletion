@@ -23,6 +23,7 @@ class TypeToCompleteTextView: NSTextView {
         }
     }
 
+    // ⚠️ Take good care of releasing this strong reference in response to lifecycle callbacks from the controller to break up the retain cycle.
     var completionPopoverController: CompletionPopoverController? {
         didSet {
             oldValue?.close()
@@ -58,17 +59,18 @@ class TypeToCompleteTextView: NSTextView {
             if let existingController = self.completionPopoverController {
                 return existingController
             } else {
-                let newController = CompletionPopoverController()
+                let newController = CompletionPopoverController(textView: self)
                 self.completionPopoverController = newController
                 return newController
             }
         }()
 
+        guard let textStorage else { preconditionFailure("NSTextView should have a text storage") }
+
         completionPopoverController.display(
             completionCandidates: completions,
             forPartialWordRange: partialWordRange,
-            originalString: self.attributedString().attributedSubstring(from: partialWordRange).string,  // FIXME: use text storage
-            relativeToInsertionPointOfTextView: self
+            originalString: textStorage.mutableString.substring(with: partialWordRange)
         )
     }
 

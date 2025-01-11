@@ -5,7 +5,29 @@ import AppKit
 class CompletionViewController: NSViewController, CandidateListViewControllerDelegate {
     lazy var candidateListViewController = CandidateListViewController()
 
-    private var adapter: CompletionAdapter?
+    // Implicitly unwrapped optional used to form a self-reference in the callback during init.
+    private var adapter: CompletionAdapter!
+
+    init(textView: NSTextView) {
+        guard let textStorage = textView.textStorage else { preconditionFailure("NSTextView should have a text storage") }
+
+        super.init(nibName: nil, bundle: nil)
+
+        self.adapter = CompletionAdapter(
+            textView: textView,
+            willProxyInvocation: { [unowned self] receiver, selector, arg1, arg2 in
+                assert(receiver === textView)
+                dispatchPrecondition(condition: .onQueue(.main))
+                MainActorBackport.assumeIsolated {
+                    self.cancelCompletion()
+                }
+            })
+    }
+
+    @available(*, unavailable)
+    required init?(coder: NSCoder) {
+        fatalError("\(#function) not implemented")
+    }
 
     override func loadView() {
         // Do not call super as we're assembling the view programmatically.
@@ -24,29 +46,15 @@ class CompletionViewController: NSViewController, CandidateListViewControllerDel
 
         candidateListViewController.delegate = self
         candidateListViewController.selectCandidate = SelectCompletionCandidate { [weak self] selectedCandidate in
-            self?.adapter?.suggestCompletion(text: selectedCandidate.value)
+            self?.adapter.suggestCompletion(text: selectedCandidate.value)
         }
         candidateListViewController.commitSelectedCandidate = { [weak self] selectedCandidate in
-            self?.adapter?.finishCompletion(text: selectedCandidate.value)
+            self?.adapter.finishCompletion(text: selectedCandidate.value)
         }
     }
 
-    func showCompletionCandidates(_ candidates: [CompletionCandidate], in textView: NSTextView) {
-        guard let textStorage = textView.textStorage else { preconditionFailure("NSTextView should have a text storage") }
-        let word = textStorage.mutableString.substring(with: textView.rangeForUserCompletion)
-
-        candidateListViewController.display(candidates: candidates, selecting: nil)
-
-        adapter = adapter
-        ?? CompletionAdapter(
-            textView: textView,
-            willProxyInvocation: { [unowned self] receiver, selector, arg1, arg2 in
-                assert(receiver === textView)
-                dispatchPrecondition(condition: .onQueue(.main))
-                MainActorBackport.assumeIsolated {
-                    self.cancelCompletion()
-                }
-            })
+    func show(completionCandidates: [CompletionCandidate]) {
+        candidateListViewController.display(candidates: completionCandidates, selecting: nil)
     }
 
     func commitCandidateSelection() {
@@ -54,7 +62,7 @@ class CompletionViewController: NSViewController, CandidateListViewControllerDel
     }
 
     func cancelCompletion() {
-        adapter?.cancelCompletion()
+        adapter.cancelCompletion()
     }
 
     override func keyDown(with event: NSEvent) {
@@ -78,18 +86,18 @@ class CompletionViewController: NSViewController, CandidateListViewControllerDel
             #selector(moveToEndOfDocument(_:)):
             candidateListViewController.perform(selector, with: nil)
         default:
-            adapter?.doCommand(by: selector)
+            adapter.doCommand(by: selector)
         }
     }
 
     override func insertText(_ insertString: Any) {
-        adapter?.insertText(insertString)
+        adapter.insertText(insertString)
     }
 
     // MARK: Forward main menu items
 
     override func supplementalTarget(forAction action: Selector, sender: Any?) -> Any? {
-        if let adapter, adapter.responds(to: action) {
+        if adapter.responds(to: action) {
             // Covers NSText methods: paste(_:), copy(_:), cut(_:), delete(_:); also font and styling settings
             return adapter
         } else {
