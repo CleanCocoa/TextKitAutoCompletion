@@ -1,36 +1,19 @@
 //  Copyright © 2025 Christian Tietze. All rights reserved. Distributed under the MIT License.
 
 import AppKit
+import TextViewProxy
 
-class CompletionViewController: NSViewController, CandidateListViewControllerDelegate {
+class CompletionViewController: NSViewController, CandidateListViewControllerDelegate, TextViewProxyDelegate {
     lazy var candidateListViewController = CandidateListViewController()
 
-    // Implicitly unwrapped optional used to form a self-reference in the callback during init.
-    private var adapter: CompletionAdapter!
+    private let adapter: CompletionAdapter
 
     init(textView: NSTextView) {
+        self.adapter = CompletionAdapter(textView: textView)
+
         super.init(nibName: nil, bundle: nil)
 
-        self.adapter = CompletionAdapter(
-            textView: textView,
-            willProxyInvocation: { [unowned self] receiver, selector in
-                // Dismiss the completion UI automatically if a (main menu) action is invoked on the text view.
-
-                assert(receiver === textView)
-                dispatchPrecondition(condition: .onQueue(.main))
-
-                /// Collection of selectors that are not associated with execting or performing actions on a target, but validation.
-                let nonPerformingSelectors: Set<Selector> = [
-                    #selector(responds(to:)),
-                    #selector(NSMenuItemValidation.validateMenuItem(_:)),
-                ]
-                guard !nonPerformingSelectors.contains(selector)
-                else { return }
-
-                MainActorBackport.assumeIsolated {
-                    self.cancelCompletion()
-                }
-            })
+        self.adapter.proxyDelegate = self
     }
 
     @available(*, unavailable)
@@ -104,6 +87,25 @@ class CompletionViewController: NSViewController, CandidateListViewControllerDel
     }
 
     // MARK: Forward main menu items
+
+    nonisolated func proxiedTextView(
+        _ receiver: NSTextView,
+        willInvokeSelector selector: Selector
+    ) {
+        /// Collection of selectors that are not associated with execting or performing actions on a target, but validation.
+        let nonPerformingSelectors: Set<Selector> = [
+            #selector(responds(to:)),
+            #selector(NSMenuItemValidation.validateMenuItem(_:)),
+        ]
+        guard !nonPerformingSelectors.contains(selector)
+        else { return }
+
+        // Dismiss the completion UI automatically if a (main menu) action is invoked on the text view.
+        dispatchPrecondition(condition: .onQueue(.main))
+        MainActorBackport.assumeIsolated {
+            self.cancelCompletion()
+        }
+    }
 
     override func supplementalTarget(forAction action: Selector, sender: Any?) -> Any? {
         if adapter.responds(to: action) {
