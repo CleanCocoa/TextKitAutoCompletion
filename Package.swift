@@ -9,14 +9,19 @@ let package = Package(
     products: [
         .library(
             name: "TextKitAutoCompletion",
-            targets: ["TextKitAutoCompletion"]),
+            targets: ["TextKitAutoCompletion", "TextViewProxy"]),
     ],
     dependencies: [
     ],
     targets: [
         .target(
             name: "TextKitAutoCompletion",
-            dependencies: []
+            dependencies: ["TextViewProxy"]
+        ),
+        .target(
+            name: "TextViewProxy",
+            dependencies: [],
+            publicHeadersPath: "include"
         ),
         .testTarget(
             name: "TextKitAutoCompletionTests",

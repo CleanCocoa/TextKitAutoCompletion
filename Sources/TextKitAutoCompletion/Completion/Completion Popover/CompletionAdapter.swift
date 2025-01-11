@@ -1,10 +1,26 @@
 //  Copyright © 2025 Christian Tietze. All rights reserved. Distributed under the MIT License.
 
 import AppKit
+import TextViewProxy
 
 @MainActor
 class CompletionAdapter: NSObject {
+    typealias ProxyInvocationCallback = @Sendable (_ receiver: NSTextView, _ selector: Selector) -> Void
+
+    fileprivate final class TextViewProxyDelegateAdapter: TextViewProxyDelegate {
+        let callback: ProxyInvocationCallback
+
+        init(callback: @escaping ProxyInvocationCallback) {
+            self.callback = callback
+        }
+
+        func proxiedTextView(_ textView: NSTextView, willInvokeSelector selector: Selector) {
+            callback(textView, selector)
+        }
+    }
+
     fileprivate let proxy: TextViewProxy
+    fileprivate let proxyDelegateAdapter: TextViewProxyDelegateAdapter
     fileprivate var originalString: String
     fileprivate var partialWordRange: NSRange
 
@@ -12,16 +28,18 @@ class CompletionAdapter: NSObject {
         textView: NSTextView,
         originalString: String,
         partialWordRange: NSRange,
-        willProxyInvocation proxyInvocationCallback: @escaping TextViewProxy.ProxyInvocationCallback = { _, _, _, _ in /* no op */ }
+        willProxyInvocation proxyInvocationCallback: @escaping ProxyInvocationCallback = { _, _ in /* no op */ }
     ) {
-        self.proxy = TextViewProxy(textView: textView, willProxyInvocation: proxyInvocationCallback)
+        self.proxy = TextViewProxy(textView: textView)
+        self.proxyDelegateAdapter = TextViewProxyDelegateAdapter(callback: proxyInvocationCallback)
         self.originalString = originalString
         self.partialWordRange = partialWordRange
+        self.proxy.delegate = proxyDelegateAdapter
     }
 
     convenience init(
         textView: NSTextView,
-        willProxyInvocation proxyInvocationCallback: @escaping TextViewProxy.ProxyInvocationCallback = { _, _, _, _ in /* no op */ }
+        willProxyInvocation proxyInvocationCallback: @escaping ProxyInvocationCallback = { _, _ in /* no op */ }
     ) {
         guard let textStorage = textView.textStorage else { preconditionFailure("NSTextView should have a text storage") }
         self.init(

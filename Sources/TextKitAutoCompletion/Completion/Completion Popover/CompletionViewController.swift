@@ -9,15 +9,24 @@ class CompletionViewController: NSViewController, CandidateListViewControllerDel
     private var adapter: CompletionAdapter!
 
     init(textView: NSTextView) {
-        guard let textStorage = textView.textStorage else { preconditionFailure("NSTextView should have a text storage") }
-
         super.init(nibName: nil, bundle: nil)
 
         self.adapter = CompletionAdapter(
             textView: textView,
-            willProxyInvocation: { [unowned self] receiver, selector, arg1, arg2 in
+            willProxyInvocation: { [unowned self] receiver, selector in
+                // Dismiss the completion UI automatically if a (main menu) action is invoked on the text view.
+
                 assert(receiver === textView)
                 dispatchPrecondition(condition: .onQueue(.main))
+
+                /// Collection of selectors that are not associated with execting or performing actions on a target, but validation.
+                let nonPerformingSelectors: Set<Selector> = [
+                    #selector(responds(to:)),
+                    #selector(NSMenuItemValidation.validateMenuItem(_:)),
+                ]
+                guard !nonPerformingSelectors.contains(selector)
+                else { return }
+
                 MainActorBackport.assumeIsolated {
                     self.cancelCompletion()
                 }
