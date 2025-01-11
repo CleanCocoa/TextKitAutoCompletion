@@ -37,12 +37,24 @@ class CompletionViewController: NSViewController, CandidateListViewControllerDel
 
         candidateListViewController.display(candidates: candidates, selecting: nil)
 
-        adapter = adapter ?? CompletionAdapter(textView: textView)
-        assert(adapter?.adaptee === textView, "Reusing old adapter expects the textView to be the same")
+        adapter = adapter
+        ?? CompletionAdapter(
+            textView: textView,
+            willProxyInvocation: { [unowned self] receiver, selector, arg1, arg2 in
+                assert(receiver === textView)
+                dispatchPrecondition(condition: .onQueue(.main))
+                MainActorBackport.assumeIsolated {
+                    self.cancelCompletion()
+                }
+            })
     }
 
     func commitCandidateSelection() {
         candidateListViewController.commitSelection(self)
+    }
+
+    func cancelCompletion() {
+        adapter?.cancelCompletion()
     }
 
     override func keyDown(with event: NSEvent) {
@@ -66,30 +78,29 @@ class CompletionViewController: NSViewController, CandidateListViewControllerDel
             #selector(moveToEndOfDocument(_:)):
             candidateListViewController.perform(selector, with: nil)
         default:
-            adapter?.adaptee.doCommand(by: selector)
+            adapter?.doCommand(by: selector)
         }
     }
 
     override func insertText(_ insertString: Any) {
-        adapter?.adaptee.insertText(insertString)
+        adapter?.insertText(insertString)
     }
 
     // MARK: Forward main menu items
 
     override func supplementalTarget(forAction action: Selector, sender: Any?) -> Any? {
-        if let adapter, adapter.adaptee.responds(to: action) {
+        if let adapter, adapter.responds(to: action) {
             // Covers NSText methods: paste(_:), copy(_:), cut(_:), delete(_:); also font and styling settings
-            defer { cancelOperation(self) }
-            return adapter.adaptee
+            return adapter
         } else {
-            return nil 
+            return super.supplementalTarget(forAction: action, sender: sender)
         }
     }
 
     // MARK: Completion shortcuts
 
     override func cancelOperation(_ sender: Any?) {
-        adapter?.cancelCompletion()
+        cancelCompletion()
     }
 
     override func insertTab(_ sender: Any?) {
@@ -101,7 +112,7 @@ class CompletionViewController: NSViewController, CandidateListViewControllerDel
     }
 
     override func insertBacktab(_ sender: Any?) {
-        adapter?.cancelCompletion()
+        cancelCompletion()
     }
 
     override func insertNewline(_ sender: Any?) {
