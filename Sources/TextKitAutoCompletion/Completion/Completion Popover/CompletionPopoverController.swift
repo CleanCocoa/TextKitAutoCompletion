@@ -22,6 +22,9 @@ public class CompletionPopoverController: NSObject, NSPopoverDelegate {
     /// Reports whether the popover controller is currently in an active completion session.
     public private(set) var isCompleting = false
 
+    /// Observation of first responder changes to auto-close the popover.
+    private var firstResponderChangeObservation: NSKeyValueObservation?
+
     public init(textView: NSTextView) {
         self.textView = textView
     }
@@ -61,7 +64,45 @@ public class CompletionPopoverController: NSObject, NSPopoverDelegate {
         popover.close()
     }
 
+    public func popoverWillShow(_ notification: Notification) {
+        wireAutoClosingOnResponderChange()
+    }
+
+    /// Observes changes to the first responder in the main window (as determined by `textView`) so that when the popover and effectively the text view lose focus, the popover automatically closes.
+    ///
+    /// > Note: Should be wired in `popoverWillShow(_:)` to avoid timing problems: `popoverDidShow(_:)` is fired *after* the animation finishes, so during the animation the first responder could be changed without being noticed.
+    private func wireAutoClosingOnResponderChange() {
+        guard let popoverWindow = popover.contentViewController?.view.window else { preconditionFailure("NSPopover on screen should have a window") }
+        guard let textViewWindow = textView.window else { preconditionFailure("Visible text view should have a window") }
+
+        assert(firstResponderChangeObservation == nil,
+               "Old observation should have been removed in the meantime")
+
+        firstResponderChangeObservation = textViewWindow.observe(\.firstResponder, options: [.new]) { [unowned self] window, change in
+            MainActorBackport.assumeIsolated {
+                let windowAcquiringFocus: NSWindow? = switch change.newValue {
+                // Listing all current (as of 2025-01-13) `NSResponder`-inheriting types for completeness.
+                case let window as NSWindow: window
+                case let windowController as NSWindowController: windowController.window
+                case let view as NSView: view.window
+                case let viewController as NSViewController: viewController.view.window
+                case let app as NSApplication: nil
+                case let drawer as NSDrawer: nil
+                case let popover as NSPopover: nil
+                case .none: nil
+                default: nil
+                }
+
+                if windowAcquiringFocus !== popoverWindow {
+                    self.close()
+                }
+            }
+        }
+    }
+
     public func popoverWillClose(_ notification: Notification) {
+        firstResponderChangeObservation = nil
+
         guard isCompleting else { return }
         controller.cancelOperation(self)
     }
