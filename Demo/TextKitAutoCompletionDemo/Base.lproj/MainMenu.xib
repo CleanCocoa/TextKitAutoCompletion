@@ -15,6 +15,8 @@
         <customObject id="-3" userLabel="Application" customClass="NSObject"/>
         <customObject id="Voe-Tx-rLC" customClass="AppDelegate" customModule="TextKitAutoCompletionDemo" customModuleProvider="target">
             <connections>
+                <outlet property="textField" destination="4ic-Hs-Mfe" id="him-Vt-nUK"/>
+                <outlet property="textView" destination="D71-KM-vrE" id="TXM-u4-lye"/>
                 <outlet property="window" destination="QvC-M9-y7g" id="gIp-Ho-8D9"/>
             </connections>
         </customObject>
@@ -626,6 +628,12 @@
                                 </connections>
                             </menuItem>
                             <menuItem isSeparatorItem="YES" id="hB3-LF-h0Y"/>
+                            <menuItem title="Focus Text Field" keyEquivalent="l" id="aKW-Ur-T1e">
+                                <connections>
+                                    <action selector="focusTextField:" target="-1" id="CXT-LU-DQI"/>
+                                </connections>
+                            </menuItem>
+                            <menuItem isSeparatorItem="YES" id="1K4-or-DYm"/>
                             <menuItem title="Show Sidebar" keyEquivalent="s" id="kIP-vf-haE">
                                 <modifierMask key="keyEquivalentModifierMask" control="YES" command="YES"/>
                                 <connections>
@@ -691,17 +699,17 @@
                 <autoresizingMask key="autoresizingMask"/>
                 <subviews>
                     <scrollView borderType="none" horizontalLineScroll="10" horizontalPageScroll="10" verticalLineScroll="10" verticalPageScroll="10" hasHorizontalScroller="NO" translatesAutoresizingMaskIntoConstraints="NO" id="3rM-Ts-aDY">
-                        <rect key="frame" x="0.0" y="0.0" width="480" height="360"/>
+                        <rect key="frame" x="0.0" y="0.0" width="480" height="327"/>
                         <clipView key="contentView" drawsBackground="NO" id="jzv-qc-5ej">
-                            <rect key="frame" x="0.0" y="0.0" width="480" height="360"/>
+                            <rect key="frame" x="0.0" y="0.0" width="480" height="327"/>
                             <autoresizingMask key="autoresizingMask" widthSizable="YES" heightSizable="YES"/>
                             <subviews>
                                 <textView wantsLayer="YES" importsGraphics="NO" richText="NO" verticallyResizable="YES" smartInsertDelete="YES" id="D71-KM-vrE" customClass="TypeToCompleteTextView" customModule="TextKitAutoCompletionDemo" customModuleProvider="target">
-                                    <rect key="frame" x="0.0" y="0.0" width="480" height="360"/>
+                                    <rect key="frame" x="0.0" y="0.0" width="480" height="327"/>
                                     <autoresizingMask key="autoresizingMask" widthSizable="YES" heightSizable="YES"/>
                                     <color key="textColor" name="textColor" catalog="System" colorSpace="catalog"/>
                                     <color key="backgroundColor" name="textBackgroundColor" catalog="System" colorSpace="catalog"/>
-                                    <size key="minSize" width="480" height="360"/>
+                                    <size key="minSize" width="480" height="327"/>
                                     <size key="maxSize" width="480" height="10000000"/>
                                 </textView>
                             </subviews>
@@ -711,28 +719,34 @@
                             <autoresizingMask key="autoresizingMask"/>
                         </scroller>
                         <scroller key="verticalScroller" wantsLayer="YES" verticalHuggingPriority="750" horizontal="NO" id="P1j-nv-00l">
-                            <rect key="frame" x="464" y="0.0" width="16" height="360"/>
+                            <rect key="frame" x="464" y="0.0" width="16" height="327"/>
                             <autoresizingMask key="autoresizingMask"/>
                         </scroller>
                     </scrollView>
+                    <textField focusRingType="none" verticalHuggingPriority="750" translatesAutoresizingMaskIntoConstraints="NO" id="4ic-Hs-Mfe">
+                        <rect key="frame" x="4" y="335" width="472" height="21"/>
+                        <textFieldCell key="cell" scrollable="YES" lineBreakMode="clipping" selectable="YES" editable="YES" sendsActionOnEndEditing="YES" borderStyle="bezel" placeholderString="Other responder to test completion dismissal (⌘L)" drawsBackground="YES" id="YdD-S3-8m9">
+                            <font key="font" usesAppearanceFont="YES"/>
+                            <color key="textColor" name="controlTextColor" catalog="System" colorSpace="catalog"/>
+                            <color key="backgroundColor" name="textBackgroundColor" catalog="System" colorSpace="catalog"/>
+                        </textFieldCell>
+                    </textField>
                 </subviews>
                 <constraints>
+                    <constraint firstItem="3rM-Ts-aDY" firstAttribute="top" secondItem="4ic-Hs-Mfe" secondAttribute="bottom" constant="8" id="3iR-FQ-9Lk"/>
                     <constraint firstAttribute="bottom" secondItem="3rM-Ts-aDY" secondAttribute="bottom" id="93y-Cd-PT5"/>
                     <constraint firstAttribute="trailing" secondItem="3rM-Ts-aDY" secondAttribute="trailing" id="GQu-YD-EWK"/>
-                    <constraint firstItem="3rM-Ts-aDY" firstAttribute="top" secondItem="EiT-Mj-1SZ" secondAttribute="top" id="IdE-Gx-Xqc"/>
+                    <constraint firstAttribute="trailing" secondItem="4ic-Hs-Mfe" secondAttribute="trailing" constant="4" id="cUW-En-Qn5"/>
                     <constraint firstItem="3rM-Ts-aDY" firstAttribute="leading" secondItem="EiT-Mj-1SZ" secondAttribute="leading" id="fND-sd-jJ6"/>
+                    <constraint firstItem="4ic-Hs-Mfe" firstAttribute="top" secondItem="EiT-Mj-1SZ" secondAttribute="top" constant="4" id="lML-0N-Ln1"/>
+                    <constraint firstItem="4ic-Hs-Mfe" firstAttribute="leading" secondItem="EiT-Mj-1SZ" secondAttribute="leading" constant="4" id="xJI-rb-oSw"/>
                 </constraints>
             </view>
             <connections>
                 <outlet property="delegate" destination="Voe-Tx-rLC" id="top-28-M4D"/>
+                <outlet property="initialFirstResponder" destination="D71-KM-vrE" id="KDa-U1-rSX"/>
             </connections>
-            <point key="canvasLocation" x="200" y="400"/>
+            <point key="canvasLocation" x="53" y="426"/>
         </window>
-        <customObject id="AdB-xQ-EGZ" customClass="TextViewController" customModule="TextKitAutoCompletionDemo" customModuleProvider="target">
-            <connections>
-                <outlet property="textView" destination="D71-KM-vrE" id="tR5-2h-gtb"/>
-                <outlet property="view" destination="3rM-Ts-aDY" id="Ype-CB-D7m"/>
-            </connections>
-        </customObject>
     </objects>
 </document>
