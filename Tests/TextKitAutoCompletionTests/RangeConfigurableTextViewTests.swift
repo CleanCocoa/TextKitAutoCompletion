@@ -26,9 +26,31 @@ struct RangeConfigurableTextViewTests {
         try block(buffer)
     }
 
-    @Test func test() throws {
-        try with(buffer: "Heˇllo") { buffer in
-            #expect(buffer == "Heˇllo")
+    func selectingRangeForUserCompletion(
+      buffer value: String,
+      `do` block: (_ buffer: NSTextViewBuffer) throws -> Void
+    ) throws {
+        try with(buffer: value) { buffer in
+            buffer.select(buffer.textView.rangeForUserCompletion)
+            try block(buffer)
         }
+    }
+
+    @Test("expands to full word before point")
+    func expandsToWordBeforePoint() throws {
+        try selectingRangeForUserCompletion(buffer: "Helloˇ, World!") { #expect($0 == "«Hello», World!") }
+        try selectingRangeForUserCompletion(buffer: "Hello, Worldˇ!") { #expect($0 == "Hello, «World»!") }
+    }
+
+    @Test("expands to word part before point, ignoring remainder")
+    func expandsToWordPartBeforePoint() throws {
+        try selectingRangeForUserCompletion(buffer: "Heˇllo, World!") { #expect($0 == "«He»llo, World!") }
+        try selectingRangeForUserCompletion(buffer: "Hello, Worˇld!") { #expect($0 == "Hello, «Wor»ld!") }
+    }
+
+    @Test("expands to full word before point including puctuation marks")
+    func expandsToWordAndPunctuationBeforePoint() throws {
+        try selectingRangeForUserCompletion(buffer: "Hello,ˇ World!") { #expect($0 == "«Hello,» World!") }
+        try selectingRangeForUserCompletion(buffer: "Hello, World!ˇ") { #expect($0 == "Hello, «World!»") }
     }
 }
