@@ -9,7 +9,6 @@ import AppKit
 @MainActor
 @Suite("rangeForUserCompletion")
 struct RangeConfigurableTextViewTests {
-
     /// 'ZERO WIDTH JOINER'
     let ZWJ = "‍"
 
@@ -40,38 +39,47 @@ struct RangeConfigurableTextViewTests {
         }
     }
 
+    func expect(
+      rangeOf bufferContent: String,
+      toBe expectation: String,
+      sourceLocation: SourceLocation = #_sourceLocation
+    ) throws {
+        try selectingRangeForUserCompletion(buffer: bufferContent) { actual in
+            #expect(actual == expectation, sourceLocation: sourceLocation)
+        }
+    }
+
     @Test("expands to full word before point")
     func expandsToWordBeforePoint() throws {
-        try selectingRangeForUserCompletion(buffer: "Helloˇ, World!") { #expect($0 == "«Hello», World!") }
-        try selectingRangeForUserCompletion(buffer: "Hello, Worldˇ!") { #expect($0 == "Hello, «World»!") }
+        try expect(rangeOf: "Helloˇ, World!", toBe: "«Hello», World!")
+        try expect(rangeOf: "Hello, Worldˇ!", toBe: "Hello, «World»!")
     }
 
     @Test("expands to word part before point, ignoring remainder")
     func expandsToWordPartBeforePoint() throws {
-        try selectingRangeForUserCompletion(buffer: "Heˇllo, World!") { #expect($0 == "«He»llo, World!") }
-        try selectingRangeForUserCompletion(buffer: "Hello, Worˇld!") { #expect($0 == "Hello, «Wor»ld!") }
+        try expect(rangeOf: "Heˇllo, World!", toBe: "«He»llo, World!")
+        try expect(rangeOf: "Hello, Worˇld!", toBe: "Hello, «Wor»ld!")
     }
 
     @Test("does not skip over puctuation marks")
     func ignorePunctuationMarks() throws {
-        try selectingRangeForUserCompletion(buffer: "Hello,ˇ World!") { #expect($0 == "Hello,ˇ World!") }
-        try selectingRangeForUserCompletion(buffer: "Hello, World!ˇ") { #expect($0 == "Hello, World!ˇ") }
-        try selectingRangeForUserCompletion(buffer: "(Hello)ˇ World!") { #expect($0 == "(Hello)ˇ World!") }
+        try expect(rangeOf: "Hello,ˇ World!",  toBe: "Hello,ˇ World!")
+        try expect(rangeOf: "Hello, World!ˇ",  toBe: "Hello, World!ˇ")
+        try expect(rangeOf: "(Hello)ˇ World!", toBe:"(Hello)ˇ World!")
     }
 
     @Test("expands to composite word with hyphen")
     func expandsToWordWithHyphen() throws {
-        try selectingRangeForUserCompletion(buffer: "The common-wealthˇ is poor") { #expect($0 == "The «common-wealth» is poor") }
-        try selectingRangeForUserCompletion(buffer: "The common-weaˇlth is poor") { #expect($0 == "The «common-wea»lth is poor") }
-        try selectingRangeForUserCompletion(buffer: "The commonˇ-wealth is poor") { #expect($0 == "The «common»-wealth is poor") }
-        try selectingRangeForUserCompletion(buffer: "The commˇon-wealth is poor") { #expect($0 == "The «comm»on-wealth is poor") }
-
-        try selectingRangeForUserCompletion(buffer: "Un\(ZWJ)commonˇ") { #expect($0 == "«Un\(ZWJ)common»") }
+        try expect(rangeOf: "The common-wealthˇ is poor", toBe: "The «common-wealth» is poor")
+        try expect(rangeOf: "The common-weaˇlth is poor", toBe: "The «common-wea»lth is poor")
+        try expect(rangeOf: "The commonˇ-wealth is poor", toBe: "The «common»-wealth is poor")
+        try expect(rangeOf: "The commˇon-wealth is poor", toBe: "The «comm»on-wealth is poor")
+        try expect(rangeOf: "Un\(ZWJ)commonˇ",            toBe: "«Un\(ZWJ)common»")
     }
 
     @Test("does not expand to only composition characters")
     func ignoreCompositionOnly() throws {
-        try selectingRangeForUserCompletion(buffer: "but --ˇ also") { #expect($0 == "but --ˇ also") }
-        try selectingRangeForUserCompletion(buffer: "but __ˇ also") { #expect($0 == "but __ˇ also") }
+        try expect(rangeOf: "but --ˇ also", toBe: "but --ˇ also")
+        try expect(rangeOf: "but __ˇ also", toBe: "but __ˇ also")
     }
 }
