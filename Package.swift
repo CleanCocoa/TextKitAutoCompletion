@@ -17,7 +17,10 @@ let package = Package(
     targets: [
         .target(
             name: "TextKitAutoCompletion",
-            dependencies: ["TextViewProxy"]
+            dependencies: [
+              "TextViewProxy",
+              .product(name: "DeclarativeTextKit", package: "declarativetextkit"),
+            ]
         ),
         .target(
             name: "TextViewProxy",

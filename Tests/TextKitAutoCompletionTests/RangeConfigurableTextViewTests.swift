@@ -9,6 +9,10 @@ import AppKit
 @MainActor
 @Suite("rangeForUserCompletion")
 struct RangeConfigurableTextViewTests {
+
+    /// 'ZERO WIDTH JOINER'
+    let ZWJ = "‍"
+
     let textView: RangeConfigurableTextView
     let buffer: NSTextViewBuffer
 
@@ -48,9 +52,26 @@ struct RangeConfigurableTextViewTests {
         try selectingRangeForUserCompletion(buffer: "Hello, Worˇld!") { #expect($0 == "Hello, «Wor»ld!") }
     }
 
-    @Test("expands to full word before point including puctuation marks")
-    func expandsToWordAndPunctuationBeforePoint() throws {
-        try selectingRangeForUserCompletion(buffer: "Hello,ˇ World!") { #expect($0 == "«Hello,» World!") }
-        try selectingRangeForUserCompletion(buffer: "Hello, World!ˇ") { #expect($0 == "Hello, «World!»") }
+    @Test("does not skip over puctuation marks")
+    func ignorePunctuationMarks() throws {
+        try selectingRangeForUserCompletion(buffer: "Hello,ˇ World!") { #expect($0 == "Hello,ˇ World!") }
+        try selectingRangeForUserCompletion(buffer: "Hello, World!ˇ") { #expect($0 == "Hello, World!ˇ") }
+        try selectingRangeForUserCompletion(buffer: "(Hello)ˇ World!") { #expect($0 == "(Hello)ˇ World!") }
+    }
+
+    @Test("expands to composite word with hyphen")
+    func expandsToWordWithHyphen() throws {
+        try selectingRangeForUserCompletion(buffer: "The common-wealthˇ is poor") { #expect($0 == "The «common-wealth» is poor") }
+        try selectingRangeForUserCompletion(buffer: "The common-weaˇlth is poor") { #expect($0 == "The «common-wea»lth is poor") }
+        try selectingRangeForUserCompletion(buffer: "The commonˇ-wealth is poor") { #expect($0 == "The «common»-wealth is poor") }
+        try selectingRangeForUserCompletion(buffer: "The commˇon-wealth is poor") { #expect($0 == "The «comm»on-wealth is poor") }
+
+        try selectingRangeForUserCompletion(buffer: "Un\(ZWJ)commonˇ") { #expect($0 == "«Un\(ZWJ)common»") }
+    }
+
+    @Test("does not expand to only composition characters")
+    func ignoreCompositionOnly() throws {
+        try selectingRangeForUserCompletion(buffer: "but --ˇ also") { #expect($0 == "but --ˇ also") }
+        try selectingRangeForUserCompletion(buffer: "but __ˇ also") { #expect($0 == "but __ˇ also") }
     }
 }
