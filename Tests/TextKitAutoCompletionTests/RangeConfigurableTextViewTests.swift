@@ -21,22 +21,13 @@ struct RangeConfigurableTextViewTests {
         self.buffer = NSTextViewBuffer(textView: textView)
     }
 
-    func with(
-      buffer value: String,
-      `do` block: (_ buffer: NSTextViewBuffer) throws -> Void
-    ) throws {
-        try change(buffer: buffer, to: value)
-        try block(buffer)
-    }
-
     func selectingRangeForUserCompletion(
       buffer value: String,
       `do` block: (_ buffer: NSTextViewBuffer) throws -> Void
     ) throws {
-        try with(buffer: value) { buffer in
-            buffer.select(buffer.textView.rangeForUserCompletion)
-            try block(buffer)
-        }
+        try change(buffer: buffer, to: value)
+        buffer.select(buffer.textView.rangeForUserCompletion)
+        try block(buffer)
     }
 
     func expect(
