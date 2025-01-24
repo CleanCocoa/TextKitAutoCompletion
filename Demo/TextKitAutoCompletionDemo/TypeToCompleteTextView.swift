@@ -5,7 +5,7 @@ import TextKitAutoCompletion
 
 /// Offers live completion while typing, triggered by a `#`, in addition to manually invoking the completion UI via `F5` or `⌥+ESC`.
 @MainActor
-class TypeToCompleteTextView: NSTextView {
+class TypeToCompleteTextView: RangeConfigurableTextView {
     override func insertText(_ string: Any, replacementRange: NSRange) {
         super.insertText(string, replacementRange: replacementRange)
 
@@ -40,18 +40,6 @@ class TypeToCompleteTextView: NSTextView {
     }
 
     var isCompleting: Bool { completionPopoverController?.isCompleting ?? false }
-
-    override var rangeForUserCompletion: NSRange {
-        var range = super.rangeForUserCompletion
-        guard range.length > 0,
-              let substring = textStorage?.mutableString.substring(with: range) as NSString?,
-              case let hashPrefixRange = substring.range(of: "#", options: .anchored),
-              hashPrefixRange.location >= 0, hashPrefixRange.length > 0
-        else { return range }
-        range.location += hashPrefixRange.length
-        range.length -= hashPrefixRange.length
-        return range
-    }
 
     override func complete(_ sender: Any?) {
         let partialWordRange = self.rangeForUserCompletion
