@@ -12,14 +12,14 @@ let package = Package(
             targets: ["TextKitAutoCompletion", "TextViewProxy"]),
     ],
     dependencies: [
-        .package(url: "https://github.com/CleanCocoa/DeclarativeTextKit.git", from: "0.3.0"),
+        .package(url: "https://github.com/CleanCocoa/TextBuffer.git", from: "0.1.0"),
     ],
     targets: [
         .target(
             name: "TextKitAutoCompletion",
             dependencies: [
               "TextViewProxy",
-              .product(name: "DeclarativeTextKit", package: "declarativetextkit"),
+              .product(name: "TextBuffer", package: "textbuffer"),
             ]
         ),
         .target(
@@ -31,8 +31,8 @@ let package = Package(
             name: "TextKitAutoCompletionTests",
             dependencies: [
                 .target(name: "TextKitAutoCompletion"),
-                .product(name: "DeclarativeTextKit", package: "declarativetextkit"),
-                .product(name: "DeclarativeTextKitTesting", package: "declarativetextkit"),
+                .product(name: "TextBuffer", package: "textbuffer"),
+                .product(name: "TextBufferTesting", package: "textbuffer"),
             ]
         ),
     ]

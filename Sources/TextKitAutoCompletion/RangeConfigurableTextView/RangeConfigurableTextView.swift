@@ -1,7 +1,7 @@
 //  Copyright © 2025 Christian Tietze. All rights reserved. Distributed under the MIT License.
 
 import AppKit
-import DeclarativeTextKit
+import TextBuffer
 
 extension CharacterSet {
     static let nonComposableWordCharacters: CharacterSet = .letters

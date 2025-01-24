@@ -2,8 +2,8 @@
 
 import Testing
 @testable import TextKitAutoCompletion
-import DeclarativeTextKit
-import DeclarativeTextKitTesting
+import TextBuffer
+import TextBufferTesting
 import AppKit
 
 @MainActor
