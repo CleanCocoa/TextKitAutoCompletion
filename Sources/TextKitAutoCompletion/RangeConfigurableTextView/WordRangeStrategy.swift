@@ -4,7 +4,7 @@ import AppKit
 import TextBuffer
 
 extension CharacterSet {
-    static let nonComposableWordCharacters: CharacterSet = .letters
+    static let nonComposableWordCharacters: CharacterSet = .alphanumerics
       .union(.init(charactersIn: "-_"))
       .inverted
 }

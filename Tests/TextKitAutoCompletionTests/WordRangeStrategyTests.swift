@@ -20,10 +20,16 @@ struct WordRangeStrategyTests: BufferTestsBase {
         self.buffer = NSTextViewBuffer(textView: textView)
     }
 
-    @Test("expands to full word before point")
-    func expandsToWordBeforePoint() throws {
-        try expect(rangeOf: "Helloˇ, World!", toBe: "«Hello», World!")
-        try expect(rangeOf: "Hello, Worldˇ!", toBe: "Hello, «World»!")
+    @Test(
+      "expands to full word before point",
+      arguments: [
+        ("Helloˇ, World!", "«Hello», World!"),
+        ("Hello, Worldˇ!", "Hello, «World»!"),
+        ("davie504ˇ",      "«davie504»"),
+      ]
+    )
+    func expandsToWordBeforePoint(input: String, expected: String) throws {
+        try expect(rangeOf: input, toBe: expected)
     }
 
     @Test("expands to word part before point, ignoring remainder")
