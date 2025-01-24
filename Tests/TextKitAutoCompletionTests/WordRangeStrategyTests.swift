@@ -10,7 +10,7 @@ import AppKit
 @Suite
 struct WordRangeStrategyTests {
     /// 'ZERO WIDTH JOINER'
-    let ZWJ = "‍"
+    let ZWJ = "\u{200D}"
 
     let buffer: NSTextViewBuffer
 
