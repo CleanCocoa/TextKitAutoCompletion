@@ -50,4 +50,16 @@ struct HashtagRangeStrategyTests: BufferTestsBase {
     func withLeadingHashes(input: String, expected: String) throws {
         try expect(rangeOf: input, toBe: expected)
     }
+
+    @Test(
+      "with hashes mixed with letters",
+      arguments: [
+        ("#foo#barˇ",  "#foo#«bar»"),
+        ("#foo##barˇ", "#foo#«#bar»"),
+        ("#你#好ˇ",     "#你#«好»"),
+        ("#你##好ˇ",    "#你#«#好»"),
+      ])
+    func hashesMixedWithLetters(input: String, expected: String) throws {
+        try expect(rangeOf: input, toBe: expected)
+    }
 }

@@ -4,7 +4,7 @@ import AppKit
 
 /// Obtain the range for user completion ignoring a leading pound sign/hash ("`#`") as a marker of the hashtag.
 ///
-/// We only skip the first hash but include others because hashes are permitted in the tag labels, like "`###triplehash`" or "`#hash#tag`".
+/// We only skip the first hash but include others because multuple hashes are permitted and may denote a difference in the tag labels, like "`###triplehash`" being different from "`#triplehash`".
 public struct HashtagRangeStrategy<Base>: RangeForUserCompletionStrategy
   where Base: RangeForUserCompletionStrategy {
     public let base: Base
