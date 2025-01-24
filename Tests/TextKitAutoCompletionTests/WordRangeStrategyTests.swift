@@ -8,7 +8,7 @@ import AppKit
 
 @MainActor
 @Suite
-struct WordRangeStrategyTests {
+struct WordRangeStrategyTests: BufferTestsBase {
     /// 'ZERO WIDTH JOINER'
     let ZWJ = "\u{200D}"
 
@@ -18,25 +18,6 @@ struct WordRangeStrategyTests {
         let textView = RangeConfigurableTextView(usingTextLayoutManager: false)
         textView.strategy = WordRangeStrategy()
         self.buffer = NSTextViewBuffer(textView: textView)
-    }
-
-    func selectingRangeForUserCompletion(
-      buffer value: String,
-      `do` block: (_ buffer: NSTextViewBuffer) throws -> Void
-    ) throws {
-        try change(buffer: buffer, to: value)
-        buffer.select(buffer.textView.rangeForUserCompletion)
-        try block(buffer)
-    }
-
-    func expect(
-      rangeOf bufferContent: String,
-      toBe expectation: String,
-      sourceLocation: SourceLocation = #_sourceLocation
-    ) throws {
-        try selectingRangeForUserCompletion(buffer: bufferContent) { actual in
-            #expect(actual == expectation, sourceLocation: sourceLocation)
-        }
     }
 
     @Test("expands to full word before point")
