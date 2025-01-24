@@ -1,7 +1,7 @@
 //  Copyright © 2025 Christian Tietze. All rights reserved. Distributed under the MIT License.
 
 import Testing
-@testable import TextKitAutoCompletion
+import TextKitAutoCompletion
 import TextBuffer
 import TextBufferTesting
 import AppKit

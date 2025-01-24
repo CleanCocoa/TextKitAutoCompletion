@@ -11,8 +11,10 @@ extension CharacterSet {
 
 /// Obtain the range for user completion by looking for words, potentially joined by hyphens, like `"long-term"`.
 public struct WordRangeStrategy: RangeForUserCompletionStrategy {
+    public init() {}
+
     public func rangeForUserCompletion(textView: NSTextView) -> NSRange {
-        // Avoiding potential bridging overhead from  `NSTextView.string as NSString` by accessing the un-bridged mutable string of the text storage.
+        // Avoiding potential bridging overhead from `NSTextView.string as NSString` by accessing the un-bridged mutable string of the text storage.
         guard let nsString = textView.textStorage?.mutableString as NSString? else {
             preconditionFailure("NSTextView needs a text storage to function")
         }
