@@ -7,17 +7,16 @@ import TextBufferTesting
 import AppKit
 
 @MainActor
-@Suite("rangeForUserCompletion")
-struct RangeConfigurableTextViewTests {
+@Suite
+struct WordRangeStrategyTests {
     /// 'ZERO WIDTH JOINER'
     let ZWJ = "‍"
 
-    let textView: RangeConfigurableTextView
     let buffer: NSTextViewBuffer
 
     init() {
         let textView = RangeConfigurableTextView(usingTextLayoutManager: false)
-        self.textView = textView
+        textView.strategy = WordRangeStrategy()
         self.buffer = NSTextViewBuffer(textView: textView)
     }
 

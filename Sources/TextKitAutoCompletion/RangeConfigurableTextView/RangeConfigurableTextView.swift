@@ -2,10 +2,14 @@
 
 import AppKit
 
-public class RangeConfigurableTextView: NSTextView {
-    let strategy: any RangeForUserCompletionStrategy = WordRangeStrategy()
+/// Text view with a configurable ``strategy`` to get to ``rangeForUserCompletion``.
+///
+/// Defaults to the system standard ``TextViewDefaultRangeStrategy`` so you can subclass in your app and not worry about accidentally changing behavior.
+open class RangeConfigurableTextView: NSTextView {
+    /// Strategy to compute ``rangeForUserCompletion``.
+    public var strategy: any RangeForUserCompletionStrategy = TextViewDefaultRangeStrategy()
 
-    public override var rangeForUserCompletion: NSRange {
+    open override var rangeForUserCompletion: NSRange {
         return strategy.rangeForUserCompletion(textView: self)
     }
 }
