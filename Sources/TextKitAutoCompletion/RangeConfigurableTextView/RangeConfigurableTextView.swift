@@ -11,12 +11,17 @@ extension CharacterSet {
 
 public class RangeConfigurableTextView: NSTextView {
     public override var rangeForUserCompletion: NSRange {
+        // Avoiding potential bridging overhead from  `NSTextView.string as NSString` by accessing the un-bridged mutable string of the text storage.
+        guard let nsString = self.textStorage?.mutableString as NSString? else {
+            preconditionFailure("NSTextView needs a text storage to function")
+        }
+
         let point = self.selectedRange().upperBound
         guard point != NSNotFound else {
-            assertionFailure("Text view should always have selection")
+            assertionFailure("NSTextView with user interaction should always have a selection or point")
             return super.rangeForUserCompletion
         }
-        let nsString = self.string as NSString
+
         let rangeUpToPoint = NSRange(startLocation: 0, endLocation: point)
         let pointBeforeWord = nsString.locationUpToCharacter(
           from: .nonComposableWordCharacters,
