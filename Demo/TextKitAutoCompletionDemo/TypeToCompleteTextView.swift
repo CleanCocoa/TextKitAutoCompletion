@@ -3,6 +3,13 @@
 import AppKit
 import TextKitAutoCompletion
 
+extension NSRange {
+    @inlinable @inline(__always)
+    func intersects(with other: NSRange) -> Bool {
+        self.intersection(other) != nil
+    }
+}
+
 /// Offers live completion while typing.
 ///
 /// - Hashtag completion is triggered by typing a `#`,
@@ -26,7 +33,7 @@ class TypeToCompleteTextView: RangeConfigurableTextView {
         super.insertText(string, replacementRange: replacementRange)
         let rangeForCompletionAfterTyping = self.rangeForUserCompletion
         /// Indicates that the previous completion context has been lost, e.g. when typing whitespace or punctuation marks to separate words.
-        let typingDidResetRange = rangeForCompletionBeforeTyping.intersection(rangeForCompletionAfterTyping) == nil
+        let typingDidResetRange = !rangeForCompletionBeforeTyping.intersects(with: rangeForCompletionAfterTyping)
 
         let cancelCompletion = isCompleting && typingDidResetRange
         if !cancelCompletion { continueCompletionIfAny() }
