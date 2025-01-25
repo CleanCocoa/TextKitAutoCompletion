@@ -88,16 +88,6 @@ class CompletionViewController: NSViewController, CandidateListViewControllerDel
     }
 
     override func insertText(_ insertString: Any) {
-        // Insert, but then cancel completion, if the user types whitespace characters.
-        let insertionShouldCancelCompletion =
-            if let insertString = (insertString as? String) ?? (insertString as? NSAttributedString)?.string,
-               insertString.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty {
-                true
-            } else {
-                false
-            }
-        defer { if insertionShouldCancelCompletion { cancelCompletion() } }
-
         adapter.insertText(insertString)
     }
 

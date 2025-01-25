@@ -21,17 +21,23 @@ class TypeToCompleteTextView: RangeConfigurableTextView {
     var isCompleting: Bool { completionPopoverController?.isCompleting ?? false }
 
     override func insertText(_ string: Any, replacementRange: NSRange) {
-        super.insertText(string, replacementRange: replacementRange)
 
-        // TODO: Consider to cancel completion when the range shifts while typing. E.g. typing a word, "hello", that narrows down results; then type a non-letter-character like "%" or "(", it resets the rangeForUserCompletion to (the empty) range after that symbol, suggesting from the whole dictionary again. Similar to cancel when hitting space, typing any non-word character should cancel. This maybe better controlled from here instead of the popover.
-        continueCompletionIfAny()
+        let rangeForCompletionBeforeTyping = self.rangeForUserCompletion
+        super.insertText(string, replacementRange: replacementRange)
+        let rangeForCompletionAfterTyping = self.rangeForUserCompletion
+        /// Indicates that the previous completion context has been lost, e.g. when typing whitespace or punctuation marks to separate words.
+        let typingDidResetRange = rangeForCompletionBeforeTyping.intersection(rangeForCompletionAfterTyping) == nil
+
+        let cancelCompletion = isCompleting && typingDidResetRange
+        if !cancelCompletion { continueCompletionIfAny() }
+        defer { if cancelCompletion { cancelCompleting() } }
 
         if !isCompleting {
             // `insertText(_:replacementRange:)` accepts both NSString and NSAttributedString, so we need to unwrap this.
-            let string = (string as? String)
-                ?? (string as? NSAttributedString)?.string
+            guard let insertString = (string as? String) ?? (string as? NSAttributedString)?.string
+            else { preconditionFailure("\(#function) called with non-string value") }
 
-            if string == "#" {
+            if insertString == "#" {
                 complete(self)
             }
         }
@@ -58,6 +64,7 @@ class TypeToCompleteTextView: RangeConfigurableTextView {
             if isCompleting {
                 cancelCompleting()
             } else {
+                // TODO: Only beep for manual invocations. Esp. avoid beeping when typing "#####", which triggers completion, but has no candidates.
                 NSSound.beep()
             }
             return
