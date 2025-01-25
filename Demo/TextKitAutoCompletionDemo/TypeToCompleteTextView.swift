@@ -36,7 +36,7 @@ class TypeToCompleteTextView: RangeConfigurableTextView {
         let typingDidResetRange = !rangeForCompletionBeforeTyping.intersects(with: rangeForCompletionAfterTyping)
 
         let cancelCompletion = isCompleting && typingDidResetRange
-        if !cancelCompletion { continueCompletionIfAny() }
+        if !cancelCompletion { continueCompleting() }
         defer { if cancelCompletion { cancelCompleting() } }
 
         if !isCompleting {
@@ -52,7 +52,7 @@ class TypeToCompleteTextView: RangeConfigurableTextView {
 
     override func deleteBackward(_ sender: Any?) {
         super.deleteBackward(sender)
-        continueCompletionIfAny()
+        continueCompleting()
     }
 
     override func complete(_ sender: Any?) {
@@ -111,12 +111,12 @@ class TypeToCompleteTextView: RangeConfigurableTextView {
         )
     }
 
-
-    /// Forward typing in text view *during* completion to the completion UI, live-updating suggestions.
-    private func continueCompletionIfAny() {
-        if isCompleting {
-            complete(self)
-        }
+    /// Do not start, but continue a completing session.
+    ///
+    /// Use to forward typing events in the text view *during* completion to the completion UI to get live-updating suggestions.
+    private func continueCompleting() {
+        guard isCompleting else { return }
+        complete(self)
     }
 
     private func cancelCompleting() {
