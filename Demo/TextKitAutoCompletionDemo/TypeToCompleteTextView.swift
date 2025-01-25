@@ -37,7 +37,7 @@ class TypeToCompleteTextView: RangeConfigurableTextView {
 
         let cancelCompletion = isCompleting && typingDidResetRange
         if !cancelCompletion { continueCompleting() }
-        defer { if cancelCompletion { cancelCompleting() } }
+        defer { if cancelCompletion { stopCompleting() } }
 
         if !isCompleting {
             // `insertText(_:replacementRange:)` accepts both NSString and NSAttributedString, so we need to unwrap this.
@@ -69,7 +69,7 @@ class TypeToCompleteTextView: RangeConfigurableTextView {
               !completions.isEmpty
         else {
             if isCompleting {
-                cancelCompleting()
+                stopCompleting()
             } else {
                 // TODO: Only beep for manual invocations. Esp. avoid beeping when typing "#####", which triggers completion, but has no candidates.
                 NSSound.beep()
@@ -87,8 +87,7 @@ class TypeToCompleteTextView: RangeConfigurableTextView {
         super.insertCompletion(word, forPartialWordRange: charRange, movement: movement, isFinal: isFinishingCompletion)
 
         if isFinishingCompletion {
-            completionPopoverController?.close()
-            completionPopoverController = nil
+            stopCompleting()
         }
     }
 
@@ -119,7 +118,7 @@ class TypeToCompleteTextView: RangeConfigurableTextView {
         complete(self)
     }
 
-    private func cancelCompleting() {
+    private func stopCompleting() {
         assert(isCompleting, "Calling \(#function) is expected only during active completion")
         completionPopoverController?.close()
         completionPopoverController = nil
