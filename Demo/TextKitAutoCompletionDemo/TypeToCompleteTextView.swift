@@ -54,25 +54,33 @@ class TypeToCompleteTextView: RangeConfigurableTextView {
     }
 
     override func insertText(_ string: Any, replacementRange: NSRange) {
+        // `insertText(_:replacementRange:)` accepts both NSString and NSAttributedString, so we need to unwrap this.
+        guard let insertString = (string as? String) ?? (string as? NSAttributedString)?.string
+        else { preconditionFailure("\(#function) called with non-string value") }
+
         /// Indicates that the previous completion context has been lost, e.g. when typing whitespace or punctuation marks to separate words.
         let typingDidResetRange = trackingRangeForUserCompletionChange {
             super.insertText(string, replacementRange: replacementRange)
         }
 
         let cancelCompletion = isCompleting && typingDidResetRange
-        if !cancelCompletion { completionLifecycleDelegate?.continueCompleting(textView: self) }
-        defer { if cancelCompletion { completionLifecycleDelegate?.stopCompleting(textView: self) } }
+        if cancelCompletion {
+            completionLifecycleDelegate?.stopCompleting(textView: self)
+        }
+        else {
+            completionLifecycleDelegate?.continueCompleting(textView: self)
 
-        if !isCompleting, !cancelCompletion {
-            // `insertText(_:replacementRange:)` accepts both NSString and NSAttributedString, so we need to unwrap this.
-            guard let insertString = (string as? String) ?? (string as? NSAttributedString)?.string
-            else { preconditionFailure("\(#function) called with non-string value") }
+            triggerAutocompletion(fromTyping: insertString)
+        }
+    }
 
-            if insertString == "#" {
-                // It's implicitly known that completionMode is nil by this point, but we don't want to blindly override it in the future if we change the surrounding conditional.
-                self.completionMode = self.completionMode ?? .hashtagAutocompletion
-                complete(self)
-            }
+    private func triggerAutocompletion(fromTyping insertString: String) {
+        // Auto-completion is not supposed to replace in-progress completions.
+        guard !isCompleting else { return }
+
+        if insertString == "#" {
+            self.completionMode = self.completionMode ?? .hashtagAutocompletion
+            complete(self)
         }
     }
 
