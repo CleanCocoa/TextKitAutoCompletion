@@ -41,7 +41,6 @@ final class CompletionLifecycleController: CompletionLifecycleDelegate {
     }
 
     func stopCompleting(textView: NSTextView) {
-        assert(isCompleting, "Calling \(#function) is expected only during active completion")
         completionPopoverController?.close()
         completionPopoverController = nil
     }

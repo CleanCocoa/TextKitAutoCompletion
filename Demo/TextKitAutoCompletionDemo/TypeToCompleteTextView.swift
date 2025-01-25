@@ -29,14 +29,20 @@ protocol CompletionLifecycleDelegate: AnyObject {
     func stopCompleting(textView: NSTextView)
 }
 
-/// Offers live completion while typing.
-///
-/// - Hashtag completion is triggered by typing a `#`,
-/// - Dictionary word completion is triggered via `F5` or `⌥+ESC` (system default completion shortcuts).
 @MainActor
 class TypeToCompleteTextView: RangeConfigurableTextView {
+    enum CompletionMode {
+        /// Completion is triggered via `F5` or `⌥+ESC` (system default completion shortcuts).
+        case manual
+
+        /// Hashtag completion, triggered by typing a `#`.
+        case hashtagAutocompletion
+    }
+
     weak var completionLifecycleDelegate: CompletionLifecycleDelegate?
-    var isCompleting: Bool { completionLifecycleDelegate?.isCompleting ?? false}
+
+    var completionMode: CompletionMode? = nil
+    var isCompleting: Bool { completionMode != nil }
 
     private func trackingRangeForUserCompletionChange(during block: () -> Void) -> Bool {
         let rangeForCompletionBeforeTyping = self.rangeForUserCompletion
@@ -57,12 +63,14 @@ class TypeToCompleteTextView: RangeConfigurableTextView {
         if !cancelCompletion { completionLifecycleDelegate?.continueCompleting(textView: self) }
         defer { if cancelCompletion { completionLifecycleDelegate?.stopCompleting(textView: self) } }
 
-        if !isCompleting {
+        if !isCompleting, !cancelCompletion {
             // `insertText(_:replacementRange:)` accepts both NSString and NSAttributedString, so we need to unwrap this.
             guard let insertString = (string as? String) ?? (string as? NSAttributedString)?.string
             else { preconditionFailure("\(#function) called with non-string value") }
 
             if insertString == "#" {
+                // It's implicitly known that completionMode is nil by this point, but we don't want to blindly override it in the future if we change the surrounding conditional.
+                self.completionMode = self.completionMode ?? .hashtagAutocompletion
                 complete(self)
             }
         }
@@ -76,6 +84,7 @@ class TypeToCompleteTextView: RangeConfigurableTextView {
     override func complete(_ sender: Any?) {
         guard let textStorage else { preconditionFailure("NSTextView should have a text storage") }
 
+        let isContinuingCompletion = self.isCompleting
         let partialWordRange = self.rangeForUserCompletion
 
         /// Unused by our approach, but required by the API; selection is reflected in the completion window directly.
@@ -89,14 +98,17 @@ class TypeToCompleteTextView: RangeConfigurableTextView {
         guard let completions,
               !completions.isEmpty
         else {
-            if isCompleting {
+            if isContinuingCompletion {
                 completionLifecycleDelegate?.stopCompleting(textView: self)
-            } else {
-                // TODO: Only beep for manual invocations. Esp. avoid beeping when typing "#####", which triggers completion, but has no candidates.
+                completionMode = nil
+            } else if case .manual = completionMode {
+                // For manual ('forced') invocation, produce error sound. Avoid beeping for the auto-completion while typing hashtags.
                 NSSound.beep()
             }
             return
         }
+
+        self.completionMode = self.completionMode ?? .manual
 
         completionLifecycleDelegate?.startCompleting(
             textView: self,
@@ -114,6 +126,7 @@ class TypeToCompleteTextView: RangeConfigurableTextView {
 
         if isFinishingCompletion {
             completionLifecycleDelegate?.stopCompleting(textView: self)
+            completionMode = nil
         }
     }
 }
