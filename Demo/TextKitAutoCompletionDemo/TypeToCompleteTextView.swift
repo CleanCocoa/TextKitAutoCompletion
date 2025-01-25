@@ -91,12 +91,16 @@ class TypeToCompleteTextView: RangeConfigurableTextView {
         completionLifecycleDelegate?.continueCompleting(textView: self)
     }
 
-    // MARK: - Completion callbacks
+    // MARK: - Completion
+    // MARK: Process callbacks
 
     override func complete(_ sender: Any?) {
+        // Do this first to get the old value before we change completionMode, effectively turning isCompleting on.
+        let isContinuingCompletion = self.isCompleting
+        self.completionMode = self.completionMode ?? .manual
+
         guard let textStorage else { preconditionFailure("NSTextView should have a text storage") }
 
-        let isContinuingCompletion = self.isCompleting
         let partialWordRange = self.rangeForUserCompletion
 
         /// Unused by our approach, but required by the API; selection is reflected in the completion window directly.
@@ -112,15 +116,14 @@ class TypeToCompleteTextView: RangeConfigurableTextView {
         else {
             if isContinuingCompletion {
                 completionLifecycleDelegate?.stopCompleting(textView: self)
-                completionMode = nil
-            } else if case .manual = completionMode {
+            }
+            if case .manual = completionMode {
                 // For manual ('forced') invocation, produce error sound. Avoid beeping for the auto-completion while typing hashtags.
                 NSSound.beep()
             }
+            completionMode = nil
             return
         }
-
-        self.completionMode = self.completionMode ?? .manual
 
         completionLifecycleDelegate?.startCompleting(
             textView: self,
