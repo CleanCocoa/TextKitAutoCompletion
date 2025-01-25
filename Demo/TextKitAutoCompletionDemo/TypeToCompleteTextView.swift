@@ -10,34 +10,52 @@ extension NSRange {
     }
 }
 
+@MainActor
+protocol CompletionLifecycleDelegate: AnyObject {
+    var isCompleting: Bool { get }
+
+    func startCompleting(
+        textView: NSTextView,
+        completionCandidates: [CompletionCandidate],
+        forPartialWordRange partialWordRange: NSRange,
+        originalString: String
+    )
+
+    /// Do not start, but continue a completing session.
+    ///
+    /// Use to forward typing events in the text view *during* completion to the completion UI to get live-updating suggestions.
+    func continueCompleting(textView: NSTextView)
+
+    func stopCompleting(textView: NSTextView)
+}
+
 /// Offers live completion while typing.
 ///
 /// - Hashtag completion is triggered by typing a `#`,
 /// - Dictionary word completion is triggered via `F5` or `⌥+ESC` (system default completion shortcuts).
 @MainActor
 class TypeToCompleteTextView: RangeConfigurableTextView {
-    // ⚠️ Take good care of releasing this strong reference in response to lifecycle callbacks from the controller to break up the retain cycle.
-    var completionPopoverController: CompletionPopoverController? {
-        didSet {
-            if completionPopoverController !== oldValue {
-                oldValue?.close()
-            }
-        }
+    weak var completionLifecycleDelegate: CompletionLifecycleDelegate?
+    var isCompleting: Bool { completionLifecycleDelegate?.isCompleting ?? false}
+
+    private func rangeForUserCompletionChanged(during block: () -> Void) -> Bool {
+        let rangeForCompletionBeforeTyping = self.rangeForUserCompletion
+
+        block()
+
+        let rangeForCompletionAfterTyping = self.rangeForUserCompletion
+        return !rangeForCompletionBeforeTyping.intersects(with: rangeForCompletionAfterTyping)
     }
 
-    var isCompleting: Bool { completionPopoverController?.isCompleting ?? false }
-
     override func insertText(_ string: Any, replacementRange: NSRange) {
-
-        let rangeForCompletionBeforeTyping = self.rangeForUserCompletion
-        super.insertText(string, replacementRange: replacementRange)
-        let rangeForCompletionAfterTyping = self.rangeForUserCompletion
         /// Indicates that the previous completion context has been lost, e.g. when typing whitespace or punctuation marks to separate words.
-        let typingDidResetRange = !rangeForCompletionBeforeTyping.intersects(with: rangeForCompletionAfterTyping)
+        let typingDidResetRange = rangeForUserCompletionChanged {
+            super.insertText(string, replacementRange: replacementRange)
+        }
 
         let cancelCompletion = isCompleting && typingDidResetRange
-        if !cancelCompletion { continueCompleting() }
-        defer { if cancelCompletion { stopCompleting() } }
+        if !cancelCompletion { completionLifecycleDelegate?.continueCompleting(textView: self) }
+        defer { if cancelCompletion { completionLifecycleDelegate?.stopCompleting(textView: self) } }
 
         if !isCompleting {
             // `insertText(_:replacementRange:)` accepts both NSString and NSAttributedString, so we need to unwrap this.
@@ -52,10 +70,12 @@ class TypeToCompleteTextView: RangeConfigurableTextView {
 
     override func deleteBackward(_ sender: Any?) {
         super.deleteBackward(sender)
-        continueCompleting()
+        completionLifecycleDelegate?.continueCompleting(textView: self)
     }
 
     override func complete(_ sender: Any?) {
+        guard let textStorage else { preconditionFailure("NSTextView should have a text storage") }
+
         let partialWordRange = self.rangeForUserCompletion
 
         /// Unused by our approach, but required by the API; selection is reflected in the completion window directly.
@@ -69,7 +89,7 @@ class TypeToCompleteTextView: RangeConfigurableTextView {
               !completions.isEmpty
         else {
             if isCompleting {
-                stopCompleting()
+                completionLifecycleDelegate?.stopCompleting(textView: self)
             } else {
                 // TODO: Only beep for manual invocations. Esp. avoid beeping when typing "#####", which triggers completion, but has no candidates.
                 NSSound.beep()
@@ -77,7 +97,12 @@ class TypeToCompleteTextView: RangeConfigurableTextView {
             return
         }
 
-        startCompleting(completionCandidates: completions, forPartialWordRange: partialWordRange)
+        completionLifecycleDelegate?.startCompleting(
+            textView: self,
+            completionCandidates: completions,
+            forPartialWordRange: partialWordRange,
+            originalString: textStorage.mutableString.substring(with: partialWordRange)
+        )
     }
 
     override func insertCompletion(_ word: String, forPartialWordRange charRange: NSRange, movement: Int, isFinal isFinishingCompletion: Bool) {
@@ -87,40 +112,7 @@ class TypeToCompleteTextView: RangeConfigurableTextView {
         super.insertCompletion(word, forPartialWordRange: charRange, movement: movement, isFinal: isFinishingCompletion)
 
         if isFinishingCompletion {
-            stopCompleting()
+            completionLifecycleDelegate?.stopCompleting(textView: self)
         }
-    }
-
-    // MARK: - Completion lifecycle
-
-    private func startCompleting(
-        completionCandidates: [CompletionCandidate],
-        forPartialWordRange partialWordRange: NSRange
-    ) {
-        guard let textStorage else { preconditionFailure("NSTextView should have a text storage") }
-
-        self.completionPopoverController = self.completionPopoverController
-            ?? CompletionPopoverController(textView: self)
-
-        assert(self.completionPopoverController != nil)
-        self.completionPopoverController?.display(
-            completionCandidates: completionCandidates,
-            forPartialWordRange: partialWordRange,
-            originalString: textStorage.mutableString.substring(with: partialWordRange)
-        )
-    }
-
-    /// Do not start, but continue a completing session.
-    ///
-    /// Use to forward typing events in the text view *during* completion to the completion UI to get live-updating suggestions.
-    private func continueCompleting() {
-        guard isCompleting else { return }
-        complete(self)
-    }
-
-    private func stopCompleting() {
-        assert(isCompleting, "Calling \(#function) is expected only during active completion")
-        completionPopoverController?.close()
-        completionPopoverController = nil
     }
 }
