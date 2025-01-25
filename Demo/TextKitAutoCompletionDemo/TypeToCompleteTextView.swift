@@ -23,10 +23,10 @@ class TypeToCompleteTextView: RangeConfigurableTextView {
     override func insertText(_ string: Any, replacementRange: NSRange) {
         super.insertText(string, replacementRange: replacementRange)
 
-        if isCompleting {
-            // Forward typing in text view *during* completion to the completion UI, live-updating suggestions.
-            complete(self)
-        } else {
+        // TODO: Consider to cancel completion when the range shifts while typing. E.g. typing a word, "hello", that narrows down results; then type a non-letter-character like "%" or "(", it resets the rangeForUserCompletion to (the empty) range after that symbol, suggesting from the whole dictionary again. Similar to cancel when hitting space, typing any non-word character should cancel. This maybe better controlled from here instead of the popover.
+        continueCompletionIfAny()
+
+        if !isCompleting {
             // `insertText(_:replacementRange:)` accepts both NSString and NSAttributedString, so we need to unwrap this.
             let string = (string as? String)
                 ?? (string as? NSAttributedString)?.string
