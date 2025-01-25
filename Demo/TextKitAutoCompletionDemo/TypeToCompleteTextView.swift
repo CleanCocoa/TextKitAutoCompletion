@@ -44,14 +44,7 @@ class TypeToCompleteTextView: RangeConfigurableTextView {
     var completionMode: CompletionMode? = nil
     var isCompleting: Bool { completionMode != nil }
 
-    private func trackingRangeForUserCompletionChange(during block: () -> Void) -> Bool {
-        let rangeForCompletionBeforeTyping = self.rangeForUserCompletion
-
-        block()
-
-        let rangeForCompletionAfterTyping = self.rangeForUserCompletion
-        return !rangeForCompletionBeforeTyping.intersects(with: rangeForCompletionAfterTyping)
-    }
+    // MARK: Editing text
 
     override func insertText(_ string: Any, replacementRange: NSRange) {
         // `insertText(_:replacementRange:)` accepts both NSString and NSAttributedString, so we need to unwrap this.
@@ -59,19 +52,28 @@ class TypeToCompleteTextView: RangeConfigurableTextView {
         else { preconditionFailure("\(#function) called with non-string value") }
 
         /// Indicates that the previous completion context has been lost, e.g. when typing whitespace or punctuation marks to separate words.
-        let typingDidResetRange = trackingRangeForUserCompletionChange {
+        let typingDidChangeCompletionContext = detectingNonOverlappingCompletionRange {
             super.insertText(string, replacementRange: replacementRange)
         }
 
-        let cancelCompletion = isCompleting && typingDidResetRange
-        if cancelCompletion {
+        if isCompleting,
+           typingDidChangeCompletionContext {
             completionLifecycleDelegate?.stopCompleting(textView: self)
-        }
-        else {
+        } else {
             completionLifecycleDelegate?.continueCompleting(textView: self)
 
             triggerAutocompletion(fromTyping: insertString)
         }
+    }
+
+    /// - Returns: `true` iff ``rangeForUserCompletion`` from after executing `block` is disjoint to the value from before.
+    private func detectingNonOverlappingCompletionRange(during block: () -> Void) -> Bool {
+        let rangeForCompletionBeforeTyping = self.rangeForUserCompletion
+
+        block()
+
+        let rangeForCompletionAfterTyping = self.rangeForUserCompletion
+        return !rangeForCompletionBeforeTyping.intersects(with: rangeForCompletionAfterTyping)
     }
 
     private func triggerAutocompletion(fromTyping insertString: String) {
@@ -88,6 +90,8 @@ class TypeToCompleteTextView: RangeConfigurableTextView {
         super.deleteBackward(sender)
         completionLifecycleDelegate?.continueCompleting(textView: self)
     }
+
+    // MARK: - Completion callbacks
 
     override func complete(_ sender: Any?) {
         guard let textStorage else { preconditionFailure("NSTextView should have a text storage") }
