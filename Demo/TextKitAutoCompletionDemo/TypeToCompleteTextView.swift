@@ -3,9 +3,23 @@
 import AppKit
 import TextKitAutoCompletion
 
-/// Offers live completion while typing, triggered by a `#`, in addition to manually invoking the completion UI via `F5` or `⌥+ESC`.
+/// Offers live completion while typing.
+///
+/// - Hashtag completion is triggered by typing a `#`,
+/// - Dictionary word completion is triggered via `F5` or `⌥+ESC` (system default completion shortcuts).
 @MainActor
 class TypeToCompleteTextView: RangeConfigurableTextView {
+    // ⚠️ Take good care of releasing this strong reference in response to lifecycle callbacks from the controller to break up the retain cycle.
+    var completionPopoverController: CompletionPopoverController? {
+        didSet {
+            if completionPopoverController !== oldValue {
+                oldValue?.close()
+            }
+        }
+    }
+
+    var isCompleting: Bool { completionPopoverController?.isCompleting ?? false }
+
     override func insertText(_ string: Any, replacementRange: NSRange) {
         super.insertText(string, replacementRange: replacementRange)
 
@@ -25,57 +39,31 @@ class TypeToCompleteTextView: RangeConfigurableTextView {
 
     override func deleteBackward(_ sender: Any?) {
         super.deleteBackward(sender)
-
-        if isCompleting {
-            // Forward typing in text view *during* completion to the completion UI, live-updating suggestions.
-            complete(self)
-        }
+        continueCompletionIfAny()
     }
-
-    // ⚠️ Take good care of releasing this strong reference in response to lifecycle callbacks from the controller to break up the retain cycle.
-    var completionPopoverController: CompletionPopoverController? {
-        didSet {
-            oldValue?.close()
-        }
-    }
-
-    var isCompleting: Bool { completionPopoverController?.isCompleting ?? false }
 
     override func complete(_ sender: Any?) {
         let partialWordRange = self.rangeForUserCompletion
-        /// Unused by our approach; selection is reflected in the completion window directly.
-        var indexOfSelectedItem: Int = -1
 
+        /// Unused by our approach, but required by the API; selection is reflected in the completion window directly.
+        var indexOfSelectedItem: Int = -1
         let completions = self.completions(
             forPartialWordRange: partialWordRange,
             indexOfSelectedItem: &indexOfSelectedItem
         )?.map(CompletionCandidate.init(_:))
-        guard let completions, !completions.isEmpty else {
+
+        guard let completions,
+              !completions.isEmpty
+        else {
             if isCompleting {
-                completionPopoverController?.close()
+                cancelCompleting()
             } else {
                 NSSound.beep()
             }
             return
         }
 
-        let completionPopoverController = {
-            if let existingController = self.completionPopoverController {
-                return existingController
-            } else {
-                let newController = CompletionPopoverController(textView: self)
-                self.completionPopoverController = newController
-                return newController
-            }
-        }()
-
-        guard let textStorage else { preconditionFailure("NSTextView should have a text storage") }
-
-        completionPopoverController.display(
-            completionCandidates: completions,
-            forPartialWordRange: partialWordRange,
-            originalString: textStorage.mutableString.substring(with: partialWordRange)
-        )
+        startCompleting(completionCandidates: completions, forPartialWordRange: partialWordRange)
     }
 
     override func insertCompletion(_ word: String, forPartialWordRange charRange: NSRange, movement: Int, isFinal isFinishingCompletion: Bool) {
@@ -88,5 +76,38 @@ class TypeToCompleteTextView: RangeConfigurableTextView {
             completionPopoverController?.close()
             completionPopoverController = nil
         }
+    }
+
+    // MARK: - Completion lifecycle
+
+    private func startCompleting(
+        completionCandidates: [CompletionCandidate],
+        forPartialWordRange partialWordRange: NSRange
+    ) {
+        guard let textStorage else { preconditionFailure("NSTextView should have a text storage") }
+
+        self.completionPopoverController = self.completionPopoverController
+            ?? CompletionPopoverController(textView: self)
+
+        assert(self.completionPopoverController != nil)
+        self.completionPopoverController?.display(
+            completionCandidates: completionCandidates,
+            forPartialWordRange: partialWordRange,
+            originalString: textStorage.mutableString.substring(with: partialWordRange)
+        )
+    }
+
+
+    /// Forward typing in text view *during* completion to the completion UI, live-updating suggestions.
+    private func continueCompletionIfAny() {
+        if isCompleting {
+            complete(self)
+        }
+    }
+
+    private func cancelCompleting() {
+        assert(isCompleting, "Calling \(#function) is expected only during active completion")
+        completionPopoverController?.close()
+        completionPopoverController = nil
     }
 }
