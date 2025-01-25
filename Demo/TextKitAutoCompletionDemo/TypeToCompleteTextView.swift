@@ -38,7 +38,7 @@ class TypeToCompleteTextView: RangeConfigurableTextView {
     weak var completionLifecycleDelegate: CompletionLifecycleDelegate?
     var isCompleting: Bool { completionLifecycleDelegate?.isCompleting ?? false}
 
-    private func rangeForUserCompletionChanged(during block: () -> Void) -> Bool {
+    private func trackingRangeForUserCompletionChange(during block: () -> Void) -> Bool {
         let rangeForCompletionBeforeTyping = self.rangeForUserCompletion
 
         block()
@@ -49,7 +49,7 @@ class TypeToCompleteTextView: RangeConfigurableTextView {
 
     override func insertText(_ string: Any, replacementRange: NSRange) {
         /// Indicates that the previous completion context has been lost, e.g. when typing whitespace or punctuation marks to separate words.
-        let typingDidResetRange = rangeForUserCompletionChanged {
+        let typingDidResetRange = trackingRangeForUserCompletionChange {
             super.insertText(string, replacementRange: replacementRange)
         }
 
@@ -79,6 +79,7 @@ class TypeToCompleteTextView: RangeConfigurableTextView {
         let partialWordRange = self.rangeForUserCompletion
 
         /// Unused by our approach, but required by the API; selection is reflected in the completion window directly.
+        // TODO: We could use indexOfSelectedItem for restoration of selected items when typing.
         var indexOfSelectedItem: Int = -1
         let completions = self.completions(
             forPartialWordRange: partialWordRange,
