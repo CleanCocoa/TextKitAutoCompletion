@@ -144,4 +144,16 @@ class TypeToCompleteTextView: RangeConfigurableTextView {
             completionMode = nil
         }
     }
+
+    // MARK: Generating candidates
+
+    override func completions(forPartialWordRange charRange: NSRange, indexOfSelectedItem index: UnsafeMutablePointer<Int>) -> [String]? {
+        switch completionMode {
+        case .hashtagAutocompletion:
+            guard let prefix = textStorage?.mutableString.substring(with: charRange) else {return nil }
+            return HashtagRepository.shared.filter { $0.hasPrefix(prefix) }
+        case .manual, nil:
+            return super.completions(forPartialWordRange: charRange, indexOfSelectedItem: index)
+        }
+    }
 }
