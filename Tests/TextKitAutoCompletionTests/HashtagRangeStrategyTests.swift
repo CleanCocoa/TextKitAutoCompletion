@@ -30,10 +30,10 @@ struct HashtagRangeStrategyTests: BufferTestsBase {
     @Test(
       "with one leading hash selects word up to hash",
       arguments: [
-        ("foo #mcˇ bar", "foo #«mc» bar"),
-        ("#fooˇ mc bar", "#«foo» mc bar"),
-        ("你   #好ˇ",     "你   #«好»"),
-        ("#你ˇ   好",     "#«你»   好"),
+        ("foo #mcˇ bar", "foo «#mc» bar"),
+        ("#fooˇ mc bar", "«#foo» mc bar"),
+        ("你   #好ˇ",     "你   «#好»"),
+        ("#你ˇ   好",     "«#你»   好"),
       ])
     func withOneLeadingHash(input: String, expected: String) throws {
         try expect(rangeOf: input, toBe: expected)
@@ -42,10 +42,10 @@ struct HashtagRangeStrategyTests: BufferTestsBase {
     @Test(
       "with three leading hashes selects word and two hashes",
       arguments: [
-        ("foo ###mcˇ bar", "foo #«##mc» bar"),
-        ("###fooˇ mc bar", "#«##foo» mc bar"),
-        ("你   ###好ˇ",     "你   #«##好»"),
-        ("###你ˇ   好",     "#«##你»   好"),
+        ("foo ###mcˇ bar", "foo «###mc» bar"),
+        ("###fooˇ mc bar", "«###foo» mc bar"),
+        ("你   ###好ˇ",     "你   «###好»"),
+        ("###你ˇ   好",     "«###你»   好"),
       ])
     func withLeadingHashes(input: String, expected: String) throws {
         try expect(rangeOf: input, toBe: expected)
@@ -54,10 +54,10 @@ struct HashtagRangeStrategyTests: BufferTestsBase {
     @Test(
       "with hashes mixed with letters",
       arguments: [
-        ("#foo#barˇ",  "#foo#«bar»"),
-        ("#foo##barˇ", "#foo#«#bar»"),
-        ("#你#好ˇ",     "#你#«好»"),
-        ("#你##好ˇ",    "#你#«#好»"),
+        ("#foo#barˇ",  "#foo«#bar»"),
+        ("#foo##barˇ", "#foo«##bar»"),
+        ("#你#好ˇ",     "#你«#好»"),
+        ("#你##好ˇ",    "#你«##好»"),
       ])
     func hashesMixedWithLetters(input: String, expected: String) throws {
         try expect(rangeOf: input, toBe: expected)

@@ -33,13 +33,12 @@ public struct HashtagRangeStrategy<Base>: RangeForUserCompletionStrategy
         // FIXME: locationUpToCharacter should *exclude* that point
         guard pointBeforeHashes != baseRange.location else { return baseRange }
 
-        let pointAfterFirstHash = pointBeforeHashes + 1
-        let rangeWitoutFirstHash = NSRange(
-          startLocation: pointAfterFirstHash,
+        let rangeIncludingHashes = NSRange(
+          startLocation: pointBeforeHashes,
           endLocation: baseRange.endLocation
         )
 
-        return rangeWitoutFirstHash
+        return rangeIncludingHashes
     }
 }
 
