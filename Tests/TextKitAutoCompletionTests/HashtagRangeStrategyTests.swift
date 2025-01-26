@@ -13,7 +13,10 @@ struct HashtagRangeStrategyTests: BufferTestsBase {
 
     init() {
         let textView = RangeConfigurableTextView(usingTextLayoutManager: false)
-        textView.strategy = HashtagRangeStrategy(wrapping: WordRangeStrategy())
+        textView.strategy = HashtagRangeStrategy(
+          wrapping: WordRangeStrategy(),
+          isMatchingFirstHash: false
+        )
         self.buffer = NSTextViewBuffer(textView: textView)
     }
 
@@ -30,10 +33,10 @@ struct HashtagRangeStrategyTests: BufferTestsBase {
     @Test(
       "with one leading hash selects word up to hash",
       arguments: [
-        ("foo #mcˇ bar", "foo «#mc» bar"),
-        ("#fooˇ mc bar", "«#foo» mc bar"),
-        ("你   #好ˇ",     "你   «#好»"),
-        ("#你ˇ   好",     "«#你»   好"),
+        ("foo #mcˇ bar", "foo #«mc» bar"),
+        ("#fooˇ mc bar", "#«foo» mc bar"),
+        ("你   #好ˇ",     "你   #«好»"),
+        ("#你ˇ   好",     "#«你»   好"),
       ])
     func withOneLeadingHash(input: String, expected: String) throws {
         try expect(rangeOf: input, toBe: expected)
@@ -42,10 +45,10 @@ struct HashtagRangeStrategyTests: BufferTestsBase {
     @Test(
       "with three leading hashes selects word and two hashes",
       arguments: [
-        ("foo ###mcˇ bar", "foo «###mc» bar"),
-        ("###fooˇ mc bar", "«###foo» mc bar"),
-        ("你   ###好ˇ",     "你   «###好»"),
-        ("###你ˇ   好",     "«###你»   好"),
+        ("foo ###mcˇ bar", "foo #«##mc» bar"),
+        ("###fooˇ mc bar", "#«##foo» mc bar"),
+        ("你   ###好ˇ",     "你   #«##好»"),
+        ("###你ˇ   好",     "#«##你»   好"),
       ])
     func withLeadingHashes(input: String, expected: String) throws {
         try expect(rangeOf: input, toBe: expected)
@@ -54,12 +57,39 @@ struct HashtagRangeStrategyTests: BufferTestsBase {
     @Test(
       "with hashes mixed with letters",
       arguments: [
+        ("#foo#barˇ",  "#foo#«bar»"),
+        ("#foo##barˇ", "#foo#«#bar»"),
+        ("#你#好ˇ",     "#你#«好»"),
+        ("#你##好ˇ",    "#你#«#好»"),
+      ])
+    func hashesMixedWithLetters(input: String, expected: String) throws {
+        try expect(rangeOf: input, toBe: expected)
+    }
+
+    @Test(
+      "include first hash in matches",
+      arguments: [
+        // No Hash
+        ("foo mcˇ bar", "foo «mc» bar"),
+        ("你   好ˇ",     "你   «好»"),
+        // One leading hash
+        ("foo #mcˇ bar", "foo «#mc» bar"),
+        ("#fooˇ mc bar", "«#foo» mc bar"),
+        ("你   #好ˇ",     "你   «#好»"),
+        ("#你ˇ   好",     "«#你»   好"),
+        // Multiple leading hashes
+        ("foo ###mcˇ bar", "foo «###mc» bar"),
+        ("###fooˇ mc bar", "«###foo» mc bar"),
+        ("你   ###好ˇ",     "你   «###好»"),
+        ("###你ˇ   好",     "«###你»   好"),
+        // No whitespace
         ("#foo#barˇ",  "#foo«#bar»"),
         ("#foo##barˇ", "#foo«##bar»"),
         ("#你#好ˇ",     "#你«#好»"),
         ("#你##好ˇ",    "#你«##好»"),
       ])
-    func hashesMixedWithLetters(input: String, expected: String) throws {
+    func includingFirstHashInMatch(input: String, expected: String) throws {
+        (self.buffer.textView as! RangeConfigurableTextView).strategy = HashtagRangeStrategy(wrapping: WordRangeStrategy(), isMatchingFirstHash: true)
         try expect(rangeOf: input, toBe: expected)
     }
 }
