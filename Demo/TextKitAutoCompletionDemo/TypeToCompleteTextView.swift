@@ -35,8 +35,8 @@ class TypeToCompleteTextView: RangeConfigurableTextView {
         /// Completion is triggered via `F5` or `⌥+ESC` (system default completion shortcuts).
         case manual
 
-        /// Hashtag completion, triggered by typing a `#`.
-        case hashtagAutocompletion
+        /// Hashtag completion, triggered by typing a `#`; also manually invoked via `F5` or `⌥+ESC` (system default completion shortcuts) next to as hash.
+        case hashtag
     }
 
     weak var completionLifecycleDelegate: CompletionLifecycleDelegate?
@@ -81,7 +81,7 @@ class TypeToCompleteTextView: RangeConfigurableTextView {
         guard !isCompleting else { return }
 
         if insertString == "#" {
-            self.completionMode = self.completionMode ?? .hashtagAutocompletion
+            self.completionMode = self.completionMode ?? .hashtag
             complete(self)
         }
     }
@@ -95,13 +95,14 @@ class TypeToCompleteTextView: RangeConfigurableTextView {
     // MARK: Process callbacks
 
     override func complete(_ sender: Any?) {
+        let partialWordRange = self.rangeForUserCompletion
+
         // Do this first to get the old value before we change completionMode, effectively turning isCompleting on.
         let isContinuingCompletion = self.isCompleting
-        self.completionMode = self.completionMode ?? .manual
+        self.completionMode = self.completionMode ?? detectedCompletionMode(range: partialWordRange)
 
         guard let textStorage else { preconditionFailure("NSTextView should have a text storage") }
 
-        let partialWordRange = self.rangeForUserCompletion
 
         /// Unused by our approach, but required by the API; selection is reflected in the completion window directly.
         // TODO: We could use indexOfSelectedItem for restoration of selected items when typing.
@@ -133,6 +134,17 @@ class TypeToCompleteTextView: RangeConfigurableTextView {
         )
     }
 
+    private func detectedCompletionMode(range: NSRange) -> CompletionMode {
+        guard let textStorage = self.textStorage else { preconditionFailure("NSTextView should have a text storage") }
+
+        let substring = textStorage.mutableString.substring(with: range)
+        if substring.hasPrefix("#") {
+            return .hashtag
+        }
+
+        return .manual
+    }
+
     override func insertCompletion(_ word: String, forPartialWordRange charRange: NSRange, movement: Int, isFinal isFinishingCompletion: Bool) {
         // Closing the popover cancels completion via `insertCompletion(_, charRange: _, movement: .cancel, isFinal: true)`, but we also close the popover upon completion. To avoid accepting a completion, followed by an automatic cancel message, we need to (a) check whether we're still actively completing anything (this approach), or (b) implement reacting to the `NSPopover` closing differently.
         guard isCompleting else { return }
@@ -149,7 +161,7 @@ class TypeToCompleteTextView: RangeConfigurableTextView {
 
     override func completions(forPartialWordRange charRange: NSRange, indexOfSelectedItem index: UnsafeMutablePointer<Int>) -> [String]? {
         switch completionMode {
-        case .hashtagAutocompletion:
+        case .hashtag:
             guard let prefix = textStorage?.mutableString.substring(with: charRange) else {return nil }
             return HashtagRepository.shared.filter { $0.hasPrefix(prefix) }
         case .manual, nil:
