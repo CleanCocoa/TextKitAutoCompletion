@@ -63,6 +63,7 @@ class CompletionViewController: NSViewController, CandidateListViewControllerDel
     }
 
     override func keyDown(with event: NSEvent) {
+        assertionFailure("CompletionViewController's keyDown is not expected to be called at the moment; subview components usually take care of this.")
         interpretKeyEvents([event])
     }
 
