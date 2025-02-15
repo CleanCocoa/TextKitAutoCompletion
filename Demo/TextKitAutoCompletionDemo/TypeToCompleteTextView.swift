@@ -81,7 +81,9 @@ class TypeToCompleteTextView: RangeConfigurableTextView {
         guard !isCompleting else { return }
 
         if insertString == "#" {
-            self.completionMode = self.completionMode ?? .hashtag
+            if completionMode == nil {
+                completionMode = .hashtag
+            }
             complete(self)
         }
     }
@@ -99,10 +101,11 @@ class TypeToCompleteTextView: RangeConfigurableTextView {
 
         // Do this first to get the old value before we change completionMode, effectively turning isCompleting on.
         let isContinuingCompletion = self.isCompleting
-        self.completionMode = self.completionMode ?? detectedCompletionMode(range: partialWordRange)
+        if self.completionMode == nil {
+            self.completionMode = detectedCompletionMode(range: partialWordRange)
+        }
 
         guard let textStorage else { preconditionFailure("NSTextView should have a text storage") }
-
 
         /// Unused by our approach, but required by the API; selection is reflected in the completion window directly.
         // TODO: We could use indexOfSelectedItem for restoration of selected items when typing.
