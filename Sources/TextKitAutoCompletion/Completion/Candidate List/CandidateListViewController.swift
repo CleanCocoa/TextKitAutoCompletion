@@ -9,9 +9,29 @@ extension NSUserInterfaceItemIdentifier {
 @MainActor
 protocol CandidateListViewControllerDelegate: NSResponder {}
 
+/// Table view that does not even attempt to respond to key events for space bar input.
+///
+/// In lists of ~5000 completion candidates, even with `allowsTypeSelect`  set to false, hitting spacebar will take a noticable time (2+ seconds) before the popover ultimately is dismissed. The majority of time is spent in `-[NSTableView keyDown:]` and `-[NSTableView _typeSelectInterpretKeyEvent:]`, even when `allowsTypeSelect` is disabled.
+///
+/// This only happens for hitting the space bar, not for typing a letter key on the keyboard.
+///
+/// - 2025-02-15: `FB16503968`
+fileprivate class SpaceBarTypeSelectionBypassingTableView: NSTableView {
+    override func keyDown(with event: NSEvent) {
+        assert(!allowsTypeSelect, "Using this fix at all assumes that we want to not type-to-select.")
+        if event.charactersIgnoringModifiers == " " {
+            assert(delegate is CandidateListViewController)
+            (delegate as? NSResponder)?.keyDown(with: event)
+            return
+        } else {
+            super.keyDown(with: event)
+        }
+    }
+}
+
 class CandidateListViewController: NSViewController, NSTableViewDataSource, NSTableViewDelegate {
     weak var delegate: CandidateListViewControllerDelegate?
-    lazy var tableView = NSTableView()
+    lazy var tableView: NSTableView = SpaceBarTypeSelectionBypassingTableView()
 
     var commitSelectedCandidate: (CompletionCandidate) -> Void = { _ in /* no op */ }
     var selectCandidate: SelectCompletionCandidate = SelectCompletionCandidate { _ in /* no op */ }
