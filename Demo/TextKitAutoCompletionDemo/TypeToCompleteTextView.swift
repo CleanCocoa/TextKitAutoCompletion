@@ -152,6 +152,7 @@ class TypeToCompleteTextView: RangeConfigurableTextView {
         // Closing the popover cancels completion via `insertCompletion(_, charRange: _, movement: .cancel, isFinal: true)`, but we also close the popover upon completion. To avoid accepting a completion, followed by an automatic cancel message, we need to (a) check whether we're still actively completing anything (this approach), or (b) implement reacting to the `NSPopover` closing differently.
         guard isCompleting else { return }
 
+        // Unlike other programmatic text changes, `insertCompletion(_:forPartialWordRange:charRange:movement:isFinal:)` already calls `shouldChangeText(in:replacementString:)` before, and `didChangeText()` after inserting the completion, so we don't have to.
         super.insertCompletion(word, forPartialWordRange: charRange, movement: movement, isFinal: isFinishingCompletion)
 
         if isFinishingCompletion {
