@@ -98,12 +98,16 @@ class CompletionViewController: NSViewController, CandidateListViewControllerDel
         _ receiver: NSTextView,
         willInvokeSelector selector: Selector
     ) {
-        /// Collection of selectors that are not associated with execting or performing actions on a target, but validation.
-        let nonPerformingSelectors: Set<Selector> = [
+        let nonCancelingSelectors: Set<Selector> = [
+            // Selectors that are not associated with performing actions on a target, but validation.
             #selector(responds(to:)),
             #selector(NSMenuItemValidation.validateMenuItem(_:)),
+            // Selectors that edit the text so that completion may continue.
+            #selector(NSStandardKeyBindingResponding.deleteBackward(_:)),
+            #selector(NSStandardKeyBindingResponding.deleteBackwardByDecomposingPreviousCharacter(_:)),
+            #selector(NSStandardKeyBindingResponding.deleteWordBackward(_:)),
         ]
-        guard !nonPerformingSelectors.contains(selector)
+        guard !nonCancelingSelectors.contains(selector)
         else { return }
 
         // Dismiss the completion UI automatically if a (main menu) action is invoked on the text view.
