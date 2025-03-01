@@ -10,6 +10,11 @@ open class RangeConfigurableTextView: NSTextView {
     public var strategy: any RangeForUserCompletionStrategy = TextViewDefaultRangeStrategy()
 
     open override var rangeForUserCompletion: NSRange {
-        return strategy.rangeForUserCompletion(textView: self)
+        if strategy is TextViewDefaultRangeStrategy {
+            // TextViewDefaultRangeStrategy uses NSTextView.rangeForUserCompletion, so we would create a cycle unless we break out to `super` here.
+            return super.rangeForUserCompletion
+        } else {
+            return strategy.rangeForUserCompletion(textView: self)
+        }
     }
 }
