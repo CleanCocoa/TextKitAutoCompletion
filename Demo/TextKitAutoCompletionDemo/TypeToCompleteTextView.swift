@@ -88,8 +88,8 @@ class TypeToCompleteTextView: RangeConfigurableTextView {
         }
     }
 
-    override func deleteBackward(_ sender: Any?) {
-        super.deleteBackward(sender)
+    override func doCommand(by selector: Selector) {
+        super.doCommand(by: selector)
         completionLifecycleDelegate?.continueCompleting(textView: self)
     }
 
