@@ -12,7 +12,7 @@ class AppDelegate: NSObject, NSApplicationDelegate {
 
     func applicationDidFinishLaunching(_ notification: Notification) {
         textView.completionLifecycleDelegate = completionLifecycleController
-        textView.strategy = HashtagRangeStrategy(wrapping: WordRangeStrategy())
+        textView.strategy = HashtagRangeStrategy(wrapping: WordRangeStrategy(), isMatchingFirstHash: true)
     }
 
     @IBAction func focusTextField(_ sender: Any) {
