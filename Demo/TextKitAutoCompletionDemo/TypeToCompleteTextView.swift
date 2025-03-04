@@ -13,6 +13,7 @@ extension NSRange {
 @MainActor
 protocol CompletionLifecycleDelegate: AnyObject {
     var isCompleting: Bool { get }
+    var completionPartialWordRange: NSRange? { get }
 
     func startCompleting(
         textView: NSTextView,

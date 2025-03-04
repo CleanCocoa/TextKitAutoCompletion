@@ -7,6 +7,7 @@ class CompletionViewController: NSViewController, CandidateListViewControllerDel
     lazy var candidateListViewController = CandidateListViewController()
 
     private let adapter: CompletionAdapter
+    var completionPartialWordRange: NSRange { adapter.partialWordRange }
 
     init(textView: NSTextView) {
         self.adapter = CompletionAdapter(textView: textView)
@@ -65,6 +66,10 @@ class CompletionViewController: NSViewController, CandidateListViewControllerDel
     override func keyDown(with event: NSEvent) {
         assertionFailure("CompletionViewController's keyDown is not expected to be called at the moment; subview components usually take care of this.")
         interpretKeyEvents([event])
+    }
+
+    override func performKeyEquivalent(with event: NSEvent) -> Bool {
+        return super.performKeyEquivalent(with: event)
     }
 
     // MARK: Forward key interpretations

@@ -14,6 +14,7 @@ final class CompletionLifecycleController: CompletionLifecycleDelegate {
     }
 
     var isCompleting: Bool { completionPopoverController?.isCompleting ?? false }
+    var completionPartialWordRange: NSRange? { completionPopoverController?.completionPartialWordRange }
 
     func startCompleting(
         textView: NSTextView,

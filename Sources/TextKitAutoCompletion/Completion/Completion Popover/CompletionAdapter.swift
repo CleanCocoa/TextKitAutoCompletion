@@ -14,12 +14,12 @@ class CompletionAdapter: NSObject {
     /// The string that will be left/restored when completion is aborted.
     ///
     /// Use ``update(originalString:partialWordRange:)`` to reflect changes from typing during the autocompletion session.
-    fileprivate var originalString: String
+    fileprivate(set) var originalString: String
 
     /// The string that will be left/restored when completion is aborted.
     ///
     /// Use ``update(originalString:partialWordRange:)`` to reflect changes from typing during the autocompletion session.
-    fileprivate var partialWordRange: NSRange
+    fileprivate(set) var partialWordRange: NSRange
 
     init(
         textView: NSTextView,
@@ -46,6 +46,7 @@ class CompletionAdapter: NSObject {
     func update(originalString: String, partialWordRange: NSRange) {
         self.originalString = originalString
         self.partialWordRange = partialWordRange
+        print(partialWordRange)
     }
 }
 

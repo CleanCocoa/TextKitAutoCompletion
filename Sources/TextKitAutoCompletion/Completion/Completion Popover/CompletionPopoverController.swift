@@ -21,6 +21,7 @@ public class CompletionPopoverController: NSObject, NSPopoverDelegate {
 
     /// Reports whether the popover controller is currently in an active completion session.
     public private(set) var isCompleting = false
+    public var completionPartialWordRange: NSRange? { controller.completionPartialWordRange }
 
     /// Observation of first responder changes to auto-close the popover.
     private var firstResponderChangeObservation: NSKeyValueObservation?
