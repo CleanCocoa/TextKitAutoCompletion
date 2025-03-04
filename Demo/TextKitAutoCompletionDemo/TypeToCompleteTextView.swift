@@ -52,9 +52,25 @@ class TypeToCompleteTextView: RangeConfigurableTextView {
         guard let insertString = (string as? String) ?? (string as? NSAttributedString)?.string
         else { preconditionFailure("\(#function) called with non-string value") }
 
-        /// Indicates that the previous completion context has been lost, e.g. when typing whitespace or punctuation marks to separate words.
-        let typingDidChangeCompletionContext = detectingNonOverlappingCompletionRange {
-            super.insertText(string, replacementRange: replacementRange)
+        // Use cached value from the delegate instead of `NSTextView.rangeForUserCompletion` because the latter aborts marking text.
+        let rangeForCompletionBeforeInserting: NSRange? = completionLifecycleDelegate?.completionPartialWordRange
+
+        super.insertText(string, replacementRange: replacementRange)
+
+        let rangeForCompletionAfterInserting: NSRange? = if let _ = rangeForCompletionBeforeInserting {
+            // We don't call this before inserting because `NSTextView.rangeForUserCompletion` aborts marking text. But so does `insertText(_:replacementRange:)`, so afterwards, we're good.
+            self.rangeForUserCompletion
+        } else {
+            nil
+        }
+
+        let typingDidChangeCompletionContext: Bool
+        if let rangeForCompletionBeforeInserting,
+            let rangeForCompletionAfterInserting {
+            typingDidChangeCompletionContext = !rangeForCompletionBeforeInserting.intersects(with: rangeForCompletionAfterInserting)
+        } else {
+            assert(!isCompleting, "Optional unwrapping of ranges should have succeeded with an active completion session")
+            typingDidChangeCompletionContext = false // Sentinel value is irrelevant, because there's no completion.
         }
 
         if isCompleting,
@@ -65,16 +81,6 @@ class TypeToCompleteTextView: RangeConfigurableTextView {
 
             triggerAutocompletion(fromTyping: insertString)
         }
-    }
-
-    /// - Returns: `true` iff ``rangeForUserCompletion`` from after executing `block` is disjoint to the value from before.
-    private func detectingNonOverlappingCompletionRange(during block: () -> Void) -> Bool {
-        let rangeForCompletionBeforeTyping = self.rangeForUserCompletion
-
-        block()
-
-        let rangeForCompletionAfterTyping = self.rangeForUserCompletion
-        return !rangeForCompletionBeforeTyping.intersects(with: rangeForCompletionAfterTyping)
     }
 
     private func triggerAutocompletion(fromTyping insertString: String) {
