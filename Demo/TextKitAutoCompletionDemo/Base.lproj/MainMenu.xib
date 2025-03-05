@@ -177,6 +177,15 @@
                                     <action selector="selectAll:" target="-1" id="VNm-Mi-diN"/>
                                 </connections>
                             </menuItem>
+                            <menuItem isSeparatorItem="YES" id="teh-D3-lH4"/>
+                            <menuItem title="Conflicting Shortcut with Delete to Start of Line" id="GGp-UZ-qYa">
+                                <string key="keyEquivalent" base64-UTF8="YES">
+CA
+</string>
+                                <connections>
+                                    <action selector="conflictingDemoShortcut:" target="-1" id="T2c-hG-0XS"/>
+                                </connections>
+                            </menuItem>
                             <menuItem isSeparatorItem="YES" id="uyl-h8-XO2"/>
                             <menuItem title="Find" id="4EN-yA-p0u">
                                 <modifierMask key="keyEquivalentModifierMask"/>
