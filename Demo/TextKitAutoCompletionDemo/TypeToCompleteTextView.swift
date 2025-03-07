@@ -95,6 +95,65 @@ class TypeToCompleteTextView: RangeConfigurableTextView {
         }
     }
 
+    override func setSelectedRanges(
+        _ selectedRanges: [NSValue],
+        affinity: NSSelectionAffinity,
+        stillSelecting stillSelectingFlag: Bool
+    ) {
+        super.setSelectedRanges(selectedRanges, affinity: affinity, stillSelecting: stillSelectingFlag)
+
+        // Coalesce multiple selection change events originating during the same RunLoop iteration into 1 call (scheduled for the next run).
+        // Motivation: Inserting a completion will insert the suggested partial word, which (1st change event) moves the insertion point to the end of the word, and then (2nd change event) selects the suggested partial word. Only after the 2nd event is the range going to "touch" `rangeForUserCompletion`, so we want to postpone reacting to selection changes until then. Otherwise, it would appear that the insertion point has been moved so that we want to abort the completion session.
+        // Bonus: `insertText` eventually invokes `setSelectedRanges` when changing the text, so the completion lifecycle delegate hasn't updated ranges from `insertText`, yet. With this approach, we postpone reacting to selection changes until both the suggested partial word has been selected and the delegate has been updates.
+        if isCompleting {
+            // Do not pass a non-nil `object` parameter here, because cancelling requests will test for object equality. Passing nil at all times helps us coalesce all calls, no matter what the input parameters to `setSelectedRanges` were. (If we ever find we need to pass the parameters along, we should instead store these as private properties in the text view to avoid invoking the callback 2+ times.)
+            NSObject.cancelPreviousPerformRequests(withTarget: self, selector: #selector(selectedRangesDidChange(_:)), object: nil)
+            self.perform(#selector(selectedRangesDidChange(_:)), with: nil, afterDelay: 0.0)
+        }
+    }
+
+    @objc private func selectedRangesDidChange(
+        _ object: Any? = nil
+    ) {
+        // Abort completion for multiple selections.
+        guard selectedRanges.count == 1,
+              let onlySelectedRange = selectedRanges.first as? NSRange
+        else {
+            completionLifecycleDelegate?.stopCompleting(textView: self)
+            completionMode = nil
+            return
+        }
+
+        // Use cached value from the delegate instead of `NSTextView.rangeForUserCompletion` because the latter aborts marking text.
+        guard let lastKnownRangeForCompletion = completionLifecycleDelegate?.completionPartialWordRange else { return }
+        assert(isCompleting, "Inconsistency: CompletionLifecycleDelegate.completionPartialWordRange should not return non-nil while isCompleting returns false")
+
+        let selectionChangeDidChangeCompletionContext = !(
+            lastKnownRangeForCompletion.intersects(with: onlySelectedRange)  // Selection inside
+            || lastKnownRangeForCompletion.endLocation == onlySelectedRange.location // Selection immediately adjacent to the right/end of the completion range
+        )
+
+        if selectionChangeDidChangeCompletionContext {
+            completionLifecycleDelegate?.stopCompleting(textView: self)
+            completionMode = nil
+            return
+        }
+
+        switch completionMode {
+        case .manual:
+            break
+        case .hashtag:
+            if lastKnownRangeForCompletion.length == 0 {
+                completionLifecycleDelegate?.stopCompleting(textView: self)
+                completionMode = nil
+                return
+            }
+        case nil:
+            break
+        }
+
+    }
+
     override func doCommand(by selector: Selector) {
         super.doCommand(by: selector)
         completionLifecycleDelegate?.continueCompleting(textView: self)
