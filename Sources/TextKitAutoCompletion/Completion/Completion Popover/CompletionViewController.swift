@@ -150,6 +150,9 @@ class CompletionViewController: NSViewController, CandidateListViewControllerDel
     }
 
     override func insertNewline(_ sender: Any?) {
+        if !candidateListViewController.hasSelectedCompletionCandidate {
+            candidateListViewController.selectFirst()
+        }
         commitCandidateSelection()
     }
 }
