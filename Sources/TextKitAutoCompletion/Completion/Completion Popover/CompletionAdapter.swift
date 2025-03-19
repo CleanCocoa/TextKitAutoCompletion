@@ -75,6 +75,7 @@ extension CompletionAdapter {
 extension CompletionAdapter {
     @MainActor
     func cancelCompletion() {
+        // When you end up changing the text view in response to e.g. key events without informing the the adapter about the `partialWordRange` or `originalString` changing, this will restore the previous text. While that's not what users expect, we consider this a programmer error. Use e.g. `insertText(_:)` or make sure you react to text changes consistently.
         proxy.textView.insertCompletion(
             originalString,
             forPartialWordRange: partialWordRange,
