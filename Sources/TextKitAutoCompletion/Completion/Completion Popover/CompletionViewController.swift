@@ -55,10 +55,6 @@ class CompletionViewController: NSViewController, CandidateListViewControllerDel
         adapter.update(originalString: originalString, partialWordRange: partialWordRange)
     }
 
-    func commitCandidateSelection() {
-        candidateListViewController.commitSelection(self)
-    }
-
     func cancelCompletion() {
         adapter.cancelCompletion()
     }
@@ -138,11 +134,7 @@ class CompletionViewController: NSViewController, CandidateListViewControllerDel
     }
 
     override func insertTab(_ sender: Any?) {
-        if candidateListViewController.hasSelectedCompletionCandidate {
-            commitCandidateSelection()
-        } else {
-            candidateListViewController.selectFirst()
-        }
+        candidateListViewController.commitSelectionOrSuggestFirst()
     }
 
     override func insertBacktab(_ sender: Any?) {
@@ -150,9 +142,6 @@ class CompletionViewController: NSViewController, CandidateListViewControllerDel
     }
 
     override func insertNewline(_ sender: Any?) {
-        if !candidateListViewController.hasSelectedCompletionCandidate {
-            candidateListViewController.selectFirst()
-        }
-        commitCandidateSelection()
+        candidateListViewController.commitSelectionOrOnlyCandidateOrCancel()
     }
 }

@@ -172,6 +172,28 @@ class CandidateListViewController: NSViewController, NSTableViewDataSource, NSTa
 }
 
 extension CandidateListViewController {
+    func commitSelectionOrSuggestFirst() {
+        if hasSelectedCompletionCandidate {
+            commitSelection(nil)
+        } else {
+            selectFirst()
+        }
+    }
+
+    func commitSelectionOrOnlyCandidateOrCancel() {
+        if hasSelectedCompletionCandidate {
+            commitSelection(nil)
+        } else if completionCandidates.count == 1 {
+            // Select only candidate
+            selectFirst()
+            commitSelection(nil)
+        } else {
+            delegate?.cancelOperation(self)
+        }
+    }
+}
+
+extension CandidateListViewController {
     func selectFirst() {
         select(row: completionCandidates.indices.first ?? -1)
     }
