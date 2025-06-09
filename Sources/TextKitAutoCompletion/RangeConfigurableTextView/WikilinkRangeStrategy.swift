@@ -8,10 +8,17 @@ where Base: RangeForUserCompletionStrategy {
     /// Wrapped range matching strategy to which wikilink detection is added.
     public let base: Base
 
+    /// Whether to include the opening and closing brackets ("`[[`" and "`]]`", respectively) in the matched ranges.
+    public let isIncludingBracketsInMatchedRange: Bool
+
     /// - Parameters:
     ///   - base: Completion strategy to extend with wiki link detection.
-    public init(wrapping base: Base) {
+    public init(
+        wrapping base: Base,
+        includingBracketsInMatchedRange: Bool = false
+    ) {
         self.base = base
+        self.isIncludingBracketsInMatchedRange = includingBracketsInMatchedRange
     }
 
     public func rangeForUserCompletion(textView: NSTextView) -> NSRange {
@@ -55,7 +62,8 @@ where Base: RangeForUserCompletionStrategy {
         guard let pointBeforeOpeningBrackets else { return baseRange }
 
         return NSRange(
-            startLocation: pointBeforeOpeningBrackets,
+            startLocation: pointBeforeOpeningBrackets
+                + (isIncludingBracketsInMatchedRange ? 0 : 2),
             endLocation: baseRange.endLocation
         )
     }
