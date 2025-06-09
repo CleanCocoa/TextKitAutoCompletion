@@ -2,7 +2,7 @@
 
 import AppKit
 
-/// Text view with a configurable ``strategy`` to get to ``rangeForUserCompletion``.
+/// Text view with one configurable ``strategy`` to get to ``rangeForUserCompletion``.
 ///
 /// Defaults to the system standard ``TextViewDefaultRangeStrategy`` so you can subclass in your app and not worry about accidentally changing behavior.
 open class RangeConfigurableTextView: NSTextView {
