@@ -38,6 +38,9 @@ class TypeToCompleteTextView: RangeConfigurableTextView {
 
         /// Hashtag completion, triggered by typing a `#`; also manually invoked via `F5` or `⌥+ESC` (system default completion shortcuts) next to as hash.
         case hashtag
+
+        /// Wiki link completion, triggered by typing `[[`.
+        case wikilink
     }
 
     weak var completionLifecycleDelegate: CompletionLifecycleDelegate?
@@ -142,7 +145,7 @@ class TypeToCompleteTextView: RangeConfigurableTextView {
         switch completionMode {
         case .manual:
             break
-        case .hashtag:
+        case .hashtag, .wikilink:
             if lastKnownRangeForCompletion.length == 0 {
                 completionLifecycleDelegate?.stopCompleting(textView: self)
                 completionMode = nil
@@ -234,6 +237,9 @@ class TypeToCompleteTextView: RangeConfigurableTextView {
         case .hashtag:
             guard let prefix = textStorage?.mutableString.substring(with: charRange) else { return nil }
             return HashtagRepository.shared.filter { $0.hasPrefix(prefix) }
+        case .wikilink:
+            // TODO: ignore [[...]] from range when manually invoked
+            return super.completions(forPartialWordRange: charRange, indexOfSelectedItem: index)
         case .manual, nil:
             return super.completions(forPartialWordRange: charRange, indexOfSelectedItem: index)
         }
