@@ -86,14 +86,20 @@ class TypeToCompleteTextView: NSTextView /* Not using RangeConfigrableTextView b
         }
 
         // MARK: Postconditions: control the completion UI
+
         if isCompleting,
            typingDidChangeCompletionContext {
-            completionLifecycleDelegate?.stopCompleting(textView: self)
+            stopCompleting()
         } else {
             completionLifecycleDelegate?.continueCompleting(textView: self)
 
             triggerAutocompletion(fromTyping: insertString)
         }
+    }
+
+    private func stopCompleting() {
+        self.completionLifecycleDelegate?.stopCompleting(textView: self)
+        self.completionMode = nil
     }
 
     private func triggerAutocompletion(fromTyping insertString: String) {
@@ -150,8 +156,7 @@ class TypeToCompleteTextView: NSTextView /* Not using RangeConfigrableTextView b
         guard selectedRanges.count == 1,
               let onlySelectedRange = selectedRanges.first as? NSRange
         else {
-            completionLifecycleDelegate?.stopCompleting(textView: self)
-            completionMode = nil
+            stopCompleting()
             return
         }
 
@@ -165,8 +170,7 @@ class TypeToCompleteTextView: NSTextView /* Not using RangeConfigrableTextView b
         )
 
         if selectionChangeDidChangeCompletionContext {
-            completionLifecycleDelegate?.stopCompleting(textView: self)
-            completionMode = nil
+            stopCompleting()
             return
         }
 
@@ -175,8 +179,7 @@ class TypeToCompleteTextView: NSTextView /* Not using RangeConfigrableTextView b
             break
         case .hashtag, .wikilink:
             if lastKnownRangeForCompletion.length == 0 {
-                completionLifecycleDelegate?.stopCompleting(textView: self)
-                completionMode = nil
+                stopCompleting()
                 return
             }
         case nil:
