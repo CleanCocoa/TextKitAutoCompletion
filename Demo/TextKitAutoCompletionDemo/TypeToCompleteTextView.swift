@@ -283,7 +283,16 @@ class TypeToCompleteTextView: NSTextView /* Not using RangeConfigurableTextView 
         guard isCompleting else { return }
 
         // Unlike other programmatic text changes, `insertCompletion(_:forPartialWordRange:charRange:movement:isFinal:)` already calls `shouldChangeText(in:replacementString:)` before, and `didChangeText()` after inserting the completion, so we don't have to.
-        super.insertCompletion(word, forPartialWordRange: charRange, movement: movement, isFinal: isFinishingCompletion)
+        if completionMode == .wikilink,
+           // Behave normally on ESC to cancel (which uses charRange to put the insertion point after the previously typed text).
+           NSTextMovement(rawValue: movement) != .cancel {
+            // Select all of the completion candidate for wiki links, because they aren't suggested based on a common prefix like the others.
+            // The UX of the default behavior would be weird: type "[[ad", then select e.g. "No Advances in Virtual Reality", it would select "No« Advances in Virtual Reality»", with the first 2 letters ("No") being different form what you typed. That's especially jarring when arrowing down through the list of completions.
+            let charRangeWithoutCommonPrefix = NSRange(location: charRange.location, length: 0)
+            super.insertCompletion(word, forPartialWordRange: charRangeWithoutCommonPrefix, movement: movement, isFinal: isFinishingCompletion)
+        } else {
+            super.insertCompletion(word, forPartialWordRange: charRange, movement: movement, isFinal: isFinishingCompletion)
+        }
 
         if isFinishingCompletion {
             completionLifecycleDelegate?.stopCompleting(textView: self)
@@ -301,7 +310,6 @@ class TypeToCompleteTextView: NSTextView /* Not using RangeConfigurableTextView 
         case .wikilink:
             guard let needle = textStorage?.mutableString.substring(with: charRange).lowercased() else { return nil }
             let needleIsEmpty = needle.count == 0
-            // FIXME: Typing "adv" and selecting a suggestion where the match is in the middle doesn't correctly select the whole word
             return WikilinkRepository.shared.filter { needleIsEmpty || $0.lowercased().contains(needle) }
         case .manual, nil:
             return super.completions(forPartialWordRange: charRange, indexOfSelectedItem: index)
