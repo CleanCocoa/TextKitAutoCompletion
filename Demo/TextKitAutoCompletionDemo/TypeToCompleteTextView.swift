@@ -255,8 +255,8 @@ class TypeToCompleteTextView: NSTextView /* Not using RangeConfigurableTextView 
     ///
     /// In case of conflicting matches like `"[[#fooˇ]]"`, favors:
     ///
-    /// 1. Wiki links (`"[["` prefix) over
-    /// 2. Hashtags (`/#+/` prefix) over
+    /// 1. Hashtags (`/#+/` prefix) over
+    /// 2. Wiki links (`"[["` prefix), which can contain hashtags, over
     /// 3. Dictionary words.
     private func detectedRangedCompletionMode() -> (range: NSRange, mode: CompletionMode) {
         assert(self.completionMode == nil, "Trying to detect an applicable mode while a completion (mode) is active. This function is not designed to handle that case.")
@@ -305,8 +305,8 @@ class TypeToCompleteTextView: NSTextView /* Not using RangeConfigurableTextView 
     override func completions(forPartialWordRange charRange: NSRange, indexOfSelectedItem index: UnsafeMutablePointer<Int>) -> [String]? {
         switch completionMode {
         case .hashtag:
-            guard let prefix = textStorage?.mutableString.substring(with: charRange) else { return nil }
-            return HashtagRepository.shared.filter { $0.hasPrefix(prefix) }
+            guard let prefix = textStorage?.mutableString.substring(with: charRange).lowercased() else { return nil }
+            return HashtagRepository.shared.filter { $0.lowercased().hasPrefix(prefix) }
         case .wikilink:
             guard let needle = textStorage?.mutableString.substring(with: charRange).lowercased() else { return nil }
             let needleIsEmpty = needle.count == 0
