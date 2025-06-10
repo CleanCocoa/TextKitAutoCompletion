@@ -31,7 +31,7 @@ protocol CompletionLifecycleDelegate: AnyObject {
 }
 
 @MainActor
-class TypeToCompleteTextView: NSTextView /* Not using RangeConfigrableTextView because we want multiple strategies. */ {
+class TypeToCompleteTextView: NSTextView /* Not using RangeConfigurableTextView because we want multiple strategies. */ {
     enum CompletionMode {
         /// Completion is triggered via `F5` or `⌥+ESC` (system default completion shortcuts).
         case manual
@@ -52,7 +52,17 @@ class TypeToCompleteTextView: NSTextView /* Not using RangeConfigrableTextView b
     )
     private lazy var wikilinkRangeStrategy = WikilinkRangeStrategy(wrapping: wordRangeStrategy)
 
-    var completionMode: CompletionMode? = nil
+    override var rangeForUserCompletion: NSRange {
+        // Since we support multiple completion modes and don't rely on `RangeConfigurableTextView.rangeForUserCompletion` dynamically dispatching to the appropriate strategy, we can change the completion range based on the current completion mode.
+        switch completionMode {
+        case .hashtag: hashtagRangeStrategy.rangeForUserCompletion(textView: self)
+        case .wikilink: wikilinkRangeStrategy.rangeForUserCompletion(textView: self)
+        case .manual: wordRangeStrategy.rangeForUserCompletion(textView: self)
+        case .none: super.rangeForUserCompletion
+        }
+    }
+
+    private var completionMode: CompletionMode? = nil
     var isCompleting: Bool { completionMode != nil }
 
     // MARK: Editing text
@@ -289,7 +299,7 @@ class TypeToCompleteTextView: NSTextView /* Not using RangeConfigrableTextView b
             guard let prefix = textStorage?.mutableString.substring(with: charRange) else { return nil }
             return HashtagRepository.shared.filter { $0.hasPrefix(prefix) }
         case .wikilink:
-            guard let needle = textStorage?.mutableString.substring(with: charRange).lowercased().drop(while: { $0 == "[" }) else { return nil }
+            guard let needle = textStorage?.mutableString.substring(with: charRange).lowercased() else { return nil }
             let needleIsEmpty = needle.count == 0
             // FIXME: Typing "adv" and selecting a suggestion where the match is in the middle doesn't correctly select the whole word
             return WikilinkRepository.shared.filter { needleIsEmpty || $0.lowercased().contains(needle) }
