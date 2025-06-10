@@ -185,11 +185,15 @@ class TypeToCompleteTextView: NSTextView /* Not using RangeConfigurableTextView 
         switch completionMode {
         case .manual:
             break
-        case .hashtag, .wikilink:
-            if lastKnownRangeForCompletion.length == 0 {
+        case .hashtag:
+            // Stop completing when removing the last hash, which is part of `lastKnownRangeForCompletion` iff `isMatchingFirstHash`.
+            if hashtagRangeStrategy.isMatchingFirstHash,
+               lastKnownRangeForCompletion.length == 0 {
                 stopCompleting()
                 return
             }
+        case .wikilink:
+            break
         case nil:
             break
         }
