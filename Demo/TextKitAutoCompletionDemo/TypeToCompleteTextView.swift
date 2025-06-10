@@ -117,9 +117,8 @@ class TypeToCompleteTextView: NSTextView /* Not using RangeConfigurableTextView 
         guard !isCompleting else { return }
 
         if insertString == "#" {
-            if completionMode == nil {
-                completionMode = .hashtag
-            }
+            assert(completionMode == nil, "Is a checked precondition")
+            completionMode = .hashtag
             complete(self)
         }
 
@@ -133,9 +132,8 @@ class TypeToCompleteTextView: NSTextView /* Not using RangeConfigurableTextView 
             if precedingRange.location >= 0 {
                 let precedingText = textStorage.mutableString.substring(with: precedingRange)
                 if precedingText == "[[" {
-                    if completionMode == nil {
-                        completionMode = .wikilink
-                    }
+                    assert(completionMode == nil, "Is a checked precondition")
+                    completionMode = .wikilink
                     complete(self)
                 }
             }
@@ -281,6 +279,11 @@ class TypeToCompleteTextView: NSTextView /* Not using RangeConfigurableTextView 
         // Closing the popover cancels completion via `insertCompletion(_, charRange: _, movement: .cancel, isFinal: true)`, but we also close the popover upon completion. To avoid accepting a completion, followed by an automatic cancel message, we need to (a) check whether we're still actively completing anything (this approach), or (b) implement reacting to the `NSPopover` closing differently.
         guard isCompleting else { return }
 
+        if isFinishingCompletion {
+            // Resetting `completionMode` early also turns `isCompleting` to `false`, in case a text-did-change event checks.
+            stopCompleting()
+        }
+
         // Unlike other programmatic text changes, `insertCompletion(_:forPartialWordRange:charRange:movement:isFinal:)` already calls `shouldChangeText(in:replacementString:)` before, and `didChangeText()` after inserting the completion, so we don't have to.
         if completionMode == .wikilink,
            // Behave normally on ESC to cancel (which uses charRange to put the insertion point after the previously typed text).
@@ -291,11 +294,6 @@ class TypeToCompleteTextView: NSTextView /* Not using RangeConfigurableTextView 
             super.insertCompletion(word, forPartialWordRange: charRangeWithoutCommonPrefix, movement: movement, isFinal: isFinishingCompletion)
         } else {
             super.insertCompletion(word, forPartialWordRange: charRange, movement: movement, isFinal: isFinishingCompletion)
-        }
-
-        if isFinishingCompletion {
-            completionLifecycleDelegate?.stopCompleting(textView: self)
-            completionMode = nil
         }
     }
 
