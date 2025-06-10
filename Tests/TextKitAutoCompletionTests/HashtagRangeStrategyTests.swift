@@ -12,10 +12,11 @@ struct HashtagRangeStrategyTests: BufferTestsBase {
     let buffer: NSTextViewBuffer
 
     init() {
-        let textView = RangeConfigurableTextView(usingTextLayoutManager: false)
-        textView.strategy = HashtagRangeStrategy(
-          wrapping: WordRangeStrategy(),
-          isMatchingFirstHash: false
+        let textView = RangeConfigurableTextView(
+            strategy: HashtagRangeStrategy(
+                wrapping: WordRangeStrategy(),
+                isMatchingFirstHash: false
+            )
         )
         self.buffer = NSTextViewBuffer(textView: textView)
     }
@@ -41,6 +42,16 @@ struct HashtagRangeStrategyTests: BufferTestsBase {
     func withOneLeadingHash(input: String, expected: String) throws {
         try expect(rangeOf: input, toBe: expected)
     }
+
+    @Test(
+        "with 2 leading hash selects word up to hash",
+        arguments: [
+            ("foo ##mcˇ bar", "foo #«#mc» bar"),
+        ])
+    func withTwoLeadingHash(input: String, expected: String) throws {
+        try expect(rangeOf: input, toBe: expected)
+    }
+
 
     @Test(
       "with three leading hashes selects word and two hashes",

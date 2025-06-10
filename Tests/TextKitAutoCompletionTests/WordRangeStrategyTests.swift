@@ -14,8 +14,7 @@ struct WordRangeStrategyTests: BufferTestsBase {
     @MainActor let buffer: NSTextViewBuffer
 
     init() {
-        let textView = RangeConfigurableTextView(usingTextLayoutManager: false)
-        textView.strategy = WordRangeStrategy()
+        let textView = RangeConfigurableTextView(strategy: WordRangeStrategy())
         self.buffer = NSTextViewBuffer(textView: textView)
     }
 
@@ -89,6 +88,34 @@ struct WordRangeStrategyTests: BufferTestsBase {
         ("but __ˇ also", "but __ˇ also"),
       ])
     func ignoreCompositionOnly(input: String, expected: String) throws {
+        try expect(rangeOf: input, toBe: expected)
+    }
+
+    @Test(
+      "excludes hash signs by default",
+      arguments: [
+          ("#fooˇ",    "#«foo»"),
+          ("bar#fooˇ", "bar#«foo»"),
+          ("#好ˇ",      "#«好»"),
+          ("你#好ˇ",    "你#«好»"),
+      ])
+    func ignoreHashes(input: String, expected: String) throws {
+        try expect(rangeOf: input, toBe: expected)
+    }
+
+    @Test(
+      "excludes brackets by default",
+      arguments: [
+        ("[fooˇ",     "[«foo»"),
+        ("[好ˇ",       "[«好»"),
+        ("[[fooˇ",    "[[«foo»"),
+        ("[[好ˇ",      "[[«好»"),
+        ("bar[fooˇ",  "bar[«foo»"),
+        ("你[好ˇ",     "你[«好»"),
+        ("bar[[fooˇ", "bar[[«foo»"),
+        ("你[[好ˇ",    "你[[«好»"),
+      ])
+    func ignoreBrackets(input: String, expected: String) throws {
         try expect(rangeOf: input, toBe: expected)
     }
 }

@@ -31,18 +31,38 @@ protocol CompletionLifecycleDelegate: AnyObject {
 }
 
 @MainActor
-class TypeToCompleteTextView: RangeConfigurableTextView {
+class TypeToCompleteTextView: NSTextView /* Not using RangeConfigurableTextView because we want multiple strategies. */ {
     enum CompletionMode {
         /// Completion is triggered via `F5` or `⌥+ESC` (system default completion shortcuts).
         case manual
 
         /// Hashtag completion, triggered by typing a `#`; also manually invoked via `F5` or `⌥+ESC` (system default completion shortcuts) next to as hash.
         case hashtag
+
+        /// Wiki link completion, triggered by typing `[[`.
+        case wikilink
     }
 
     weak var completionLifecycleDelegate: CompletionLifecycleDelegate?
 
-    var completionMode: CompletionMode? = nil
+    private lazy var wordRangeStrategy = WordRangeStrategy()
+    private lazy var hashtagRangeStrategy = HashtagRangeStrategy(
+        wrapping: wordRangeStrategy,
+        isMatchingFirstHash: true // include "#" in range, used to disambiguate "##inbox" from "#inbox"
+    )
+    private lazy var wikilinkRangeStrategy = WikilinkRangeStrategy(wrapping: wordRangeStrategy)
+
+    override var rangeForUserCompletion: NSRange {
+        // Since we support multiple completion modes and don't rely on `RangeConfigurableTextView.rangeForUserCompletion` dynamically dispatching to the appropriate strategy, we can change the completion range based on the current completion mode.
+        switch completionMode {
+        case .hashtag: hashtagRangeStrategy.rangeForUserCompletion(textView: self) ?? super.rangeForUserCompletion
+        case .wikilink: wikilinkRangeStrategy.rangeForUserCompletion(textView: self) ?? super.rangeForUserCompletion
+        case .manual: wordRangeStrategy.rangeForUserCompletion(textView: self)
+        case .none: super.rangeForUserCompletion
+        }
+    }
+
+    private var completionMode: CompletionMode? = nil
     var isCompleting: Bool { completionMode != nil }
 
     // MARK: Editing text
@@ -51,6 +71,8 @@ class TypeToCompleteTextView: RangeConfigurableTextView {
         // `insertText(_:replacementRange:)` accepts both NSString and NSAttributedString, so we need to unwrap this.
         guard let insertString = (string as? String) ?? (string as? NSAttributedString)?.string
         else { preconditionFailure("\(#function) called with non-string value") }
+
+        // MARK: Wrap original implementation with completion range change tracking
 
         // Use cached value from the delegate instead of `NSTextView.rangeForUserCompletion` because the latter aborts marking text.
         let rangeForCompletionBeforeInserting: NSRange? = completionLifecycleDelegate?.completionPartialWordRange
@@ -73,9 +95,11 @@ class TypeToCompleteTextView: RangeConfigurableTextView {
             typingDidChangeCompletionContext = false // Sentinel value is irrelevant, because there's no completion.
         }
 
+        // MARK: Postconditions: control the completion UI
+
         if isCompleting,
            typingDidChangeCompletionContext {
-            completionLifecycleDelegate?.stopCompleting(textView: self)
+            stopCompleting()
         } else {
             completionLifecycleDelegate?.continueCompleting(textView: self)
 
@@ -83,15 +107,36 @@ class TypeToCompleteTextView: RangeConfigurableTextView {
         }
     }
 
+    private func stopCompleting() {
+        self.completionLifecycleDelegate?.stopCompleting(textView: self)
+        self.completionMode = nil
+    }
+
     private func triggerAutocompletion(fromTyping insertString: String) {
         // Auto-completion is not supposed to replace in-progress completions.
         guard !isCompleting else { return }
 
         if insertString == "#" {
-            if completionMode == nil {
-                completionMode = .hashtag
-            }
+            assert(completionMode == nil, "Is a checked precondition")
+            completionMode = .hashtag
             complete(self)
+        }
+
+        if insertString == "[" {
+            guard let textStorage = self.textStorage else { preconditionFailure("NSTextView should have a text storage") }
+            guard self.selectedRange.length == 0 else { assertionFailure("triggerAutocompletion via insertText should not have a selection range, only insertion point location"); return }
+
+            let insertionPoint = self.selectedRange.location
+            let precedingTextLength = 2
+            let precedingRange = NSRange(location: insertionPoint - precedingTextLength, length: precedingTextLength)
+            if precedingRange.location >= 0 {
+                let precedingText = textStorage.mutableString.substring(with: precedingRange)
+                if precedingText == "[[" {
+                    assert(completionMode == nil, "Is a checked precondition")
+                    completionMode = .wikilink
+                    complete(self)
+                }
+            }
         }
     }
 
@@ -119,8 +164,7 @@ class TypeToCompleteTextView: RangeConfigurableTextView {
         guard selectedRanges.count == 1,
               let onlySelectedRange = selectedRanges.first as? NSRange
         else {
-            completionLifecycleDelegate?.stopCompleting(textView: self)
-            completionMode = nil
+            stopCompleting()
             return
         }
 
@@ -134,8 +178,7 @@ class TypeToCompleteTextView: RangeConfigurableTextView {
         )
 
         if selectionChangeDidChangeCompletionContext {
-            completionLifecycleDelegate?.stopCompleting(textView: self)
-            completionMode = nil
+            stopCompleting()
             return
         }
 
@@ -143,11 +186,14 @@ class TypeToCompleteTextView: RangeConfigurableTextView {
         case .manual:
             break
         case .hashtag:
-            if lastKnownRangeForCompletion.length == 0 {
-                completionLifecycleDelegate?.stopCompleting(textView: self)
-                completionMode = nil
+            // Stop completing when removing the last hash, which is part of `lastKnownRangeForCompletion` iff `isMatchingFirstHash`.
+            if hashtagRangeStrategy.isMatchingFirstHash,
+               lastKnownRangeForCompletion.length == 0 {
+                stopCompleting()
                 return
             }
+        case .wikilink:
+            break
         case nil:
             break
         }
@@ -163,12 +209,16 @@ class TypeToCompleteTextView: RangeConfigurableTextView {
     // MARK: Process callbacks
 
     override func complete(_ sender: Any?) {
-        let partialWordRange = self.rangeForUserCompletion
-
-        // Do this first to get the old value before we change completionMode, effectively turning isCompleting on.
+        /// Original `isCompleting` value before potential changes to `completionMode` (which effectively turns `isCompleting` on)
         let isContinuingCompletion = self.isCompleting
+
+        let partialWordRange: NSRange
         if self.completionMode == nil {
-            self.completionMode = detectedCompletionMode(range: partialWordRange)
+            let (range, mode) = detectedRangedCompletionMode()
+            partialWordRange = range
+            self.completionMode = mode
+        } else {
+            partialWordRange = self.rangeForUserCompletion
         }
 
         guard let textStorage else { preconditionFailure("NSTextView should have a text storage") }
@@ -203,27 +253,51 @@ class TypeToCompleteTextView: RangeConfigurableTextView {
         )
     }
 
-    private func detectedCompletionMode(range: NSRange) -> CompletionMode {
-        guard let textStorage = self.textStorage else { preconditionFailure("NSTextView should have a text storage") }
+    /// Determines which completion mode to activate.
+    ///
+    /// In case of conflicting matches like `"[[#fooˇ]]"`, favors:
+    ///
+    /// 1. Hashtags (`/#+/` prefix) over
+    /// 2. Wiki links (`"[["` prefix), which can contain hashtags, over
+    /// 3. Dictionary words.
+    private func detectedRangedCompletionMode() -> (range: NSRange, mode: CompletionMode) {
+        assert(self.completionMode == nil, "Trying to detect an applicable mode while a completion (mode) is active. This function is not designed to handle that case.")
 
-        let substring = textStorage.mutableString.substring(with: range)
-        if substring.hasPrefix("#") {
-            return .hashtag
+        // We could default to `hashtagRangeStrategy` because it chiefly matches a superset of `wordRangeStrategy`. But with wiki link completion candidates, we will want to escalate to favor one over the other, as wiki links aren't a superset to hashtags, and they need to be weighed against each other.
+        let wikilinkRange = wikilinkRangeStrategy.rangeForUserCompletion(textView: self)
+        let hashtagRange = hashtagRangeStrategy.rangeForUserCompletion(textView: self)
+        let wordRange = wordRangeStrategy.rangeForUserCompletion(textView: self) as NSRange  // Diambiguate, so that we don't have to pattern-match
+
+        if case .range(let hashtagRange) = hashtagRange {
+            return (hashtagRange, .hashtag)
         }
 
-        return .manual
+        if case .range(let wikilinkRange) = wikilinkRange {
+            return (wikilinkRange, .wikilink)
+        }
+
+        return (wordRange, .manual)
     }
 
     override func insertCompletion(_ word: String, forPartialWordRange charRange: NSRange, movement: Int, isFinal isFinishingCompletion: Bool) {
         // Closing the popover cancels completion via `insertCompletion(_, charRange: _, movement: .cancel, isFinal: true)`, but we also close the popover upon completion. To avoid accepting a completion, followed by an automatic cancel message, we need to (a) check whether we're still actively completing anything (this approach), or (b) implement reacting to the `NSPopover` closing differently.
         guard isCompleting else { return }
 
-        // Unlike other programmatic text changes, `insertCompletion(_:forPartialWordRange:charRange:movement:isFinal:)` already calls `shouldChangeText(in:replacementString:)` before, and `didChangeText()` after inserting the completion, so we don't have to.
-        super.insertCompletion(word, forPartialWordRange: charRange, movement: movement, isFinal: isFinishingCompletion)
-
         if isFinishingCompletion {
-            completionLifecycleDelegate?.stopCompleting(textView: self)
-            completionMode = nil
+            // Resetting `completionMode` early also turns `isCompleting` to `false`, in case a text-did-change event checks.
+            stopCompleting()
+        }
+
+        // Unlike other programmatic text changes, `insertCompletion(_:forPartialWordRange:charRange:movement:isFinal:)` already calls `shouldChangeText(in:replacementString:)` before, and `didChangeText()` after inserting the completion, so we don't have to.
+        if completionMode == .wikilink,
+           // Behave normally on ESC to cancel (which uses charRange to put the insertion point after the previously typed text).
+           NSTextMovement(rawValue: movement) != .cancel {
+            // Select all of the completion candidate for wiki links, because they aren't suggested based on a common prefix like the others.
+            // The UX of the default behavior would be weird: type "[[ad", then select e.g. "No Advances in Virtual Reality", it would select "No« Advances in Virtual Reality»", with the first 2 letters ("No") being different form what you typed. That's especially jarring when arrowing down through the list of completions.
+            let charRangeWithoutCommonPrefix = NSRange(location: charRange.location, length: 0)
+            super.insertCompletion(word, forPartialWordRange: charRangeWithoutCommonPrefix, movement: movement, isFinal: isFinishingCompletion)
+        } else {
+            super.insertCompletion(word, forPartialWordRange: charRange, movement: movement, isFinal: isFinishingCompletion)
         }
     }
 
@@ -232,8 +306,12 @@ class TypeToCompleteTextView: RangeConfigurableTextView {
     override func completions(forPartialWordRange charRange: NSRange, indexOfSelectedItem index: UnsafeMutablePointer<Int>) -> [String]? {
         switch completionMode {
         case .hashtag:
-            guard let prefix = textStorage?.mutableString.substring(with: charRange) else { return nil }
-            return HashtagRepository.shared.filter { $0.hasPrefix(prefix) }
+            guard let prefix = textStorage?.mutableString.substring(with: charRange).lowercased() else { return nil }
+            return HashtagRepository.shared.filter { $0.lowercased().hasPrefix(prefix) }
+        case .wikilink:
+            guard let needle = textStorage?.mutableString.substring(with: charRange).lowercased() else { return nil }
+            let needleIsEmpty = needle.count == 0
+            return WikilinkRepository.shared.filter { needleIsEmpty || $0.lowercased().contains(needle) }
         case .manual, nil:
             return super.completions(forPartialWordRange: charRange, indexOfSelectedItem: index)
         }

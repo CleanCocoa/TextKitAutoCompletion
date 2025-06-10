@@ -30,7 +30,11 @@ extension BufferTestsBase {
       sourceLocation: SourceLocation = #_sourceLocation
     ) throws {
         try selectingRangeForUserCompletion(buffer: bufferContent) { actual in
-            #expect(actual == expectation, sourceLocation: sourceLocation)
+            #expect(
+                actual == expectation,
+                "given → \"\(bufferContent)\"",
+                sourceLocation: sourceLocation
+            )
         }
     }
 }
