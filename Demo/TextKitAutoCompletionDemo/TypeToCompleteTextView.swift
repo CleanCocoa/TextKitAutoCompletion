@@ -260,7 +260,6 @@ class TypeToCompleteTextView: NSTextView /* Not using RangeConfigurableTextView 
     /// 3. Dictionary words.
     private func detectedRangedCompletionMode() -> (range: NSRange, mode: CompletionMode) {
         assert(self.completionMode == nil, "Trying to detect an applicable mode while a completion (mode) is active. This function is not designed to handle that case.")
-        guard let textStorage = self.textStorage else { preconditionFailure("NSTextView should have a text storage") }
 
         // We could default to `hashtagRangeStrategy` because it chiefly matches a superset of `wordRangeStrategy`. But with wiki link completion candidates, we will want to escalate to favor one over the other, as wiki links aren't a superset to hashtags, and they need to be weighed against each other.
         let wikilinkRange = wikilinkRangeStrategy.rangeForUserCompletion(textView: self)
