@@ -14,8 +14,7 @@ struct WordRangeStrategyTests: BufferTestsBase {
     @MainActor let buffer: NSTextViewBuffer
 
     init() {
-        let textView = RangeConfigurableTextView(usingTextLayoutManager: false)
-        textView.strategy = WordRangeStrategy()
+        let textView = RangeConfigurableTextView(strategy: WordRangeStrategy())
         self.buffer = NSTextViewBuffer(textView: textView)
     }
 

@@ -12,10 +12,11 @@ struct WikilinkRangeStrategyTests: BufferTestsBase {
     let buffer: NSTextViewBuffer
 
     init() {
-        let textView = RangeConfigurableTextView(usingTextLayoutManager: false)
-        textView.strategy = WikilinkRangeStrategy(
-            wrapping: WordRangeStrategy(),
-            includingBracketsInMatchedRange: true
+        let textView = RangeConfigurableTextView(
+            strategy: WikilinkRangeStrategy(
+                wrapping: WordRangeStrategy(),
+                includingBracketsInMatchedRange: true
+            )
         )
         self.buffer = NSTextViewBuffer(textView: textView)
     }

@@ -55,8 +55,8 @@ class TypeToCompleteTextView: NSTextView /* Not using RangeConfigurableTextView 
     override var rangeForUserCompletion: NSRange {
         // Since we support multiple completion modes and don't rely on `RangeConfigurableTextView.rangeForUserCompletion` dynamically dispatching to the appropriate strategy, we can change the completion range based on the current completion mode.
         switch completionMode {
-        case .hashtag: hashtagRangeStrategy.rangeForUserCompletion(textView: self)
-        case .wikilink: wikilinkRangeStrategy.rangeForUserCompletion(textView: self)
+        case .hashtag: hashtagRangeStrategy.rangeForUserCompletion(textView: self) ?? super.rangeForUserCompletion
+        case .wikilink: wikilinkRangeStrategy.rangeForUserCompletion(textView: self) ?? super.rangeForUserCompletion
         case .manual: wordRangeStrategy.rangeForUserCompletion(textView: self)
         case .none: super.rangeForUserCompletion
         }
@@ -265,14 +265,14 @@ class TypeToCompleteTextView: NSTextView /* Not using RangeConfigurableTextView 
         // We could default to `hashtagRangeStrategy` because it chiefly matches a superset of `wordRangeStrategy`. But with wiki link completion candidates, we will want to escalate to favor one over the other, as wiki links aren't a superset to hashtags, and they need to be weighed against each other.
         let wikilinkRange = wikilinkRangeStrategy.rangeForUserCompletion(textView: self)
         let hashtagRange = hashtagRangeStrategy.rangeForUserCompletion(textView: self)
-        let wordRange = wordRangeStrategy.rangeForUserCompletion(textView: self)
+        let wordRange = wordRangeStrategy.rangeForUserCompletion(textView: self) as NSRange  // Diambiguate, so that we don't have to pattern-match
 
-        if textStorage.mutableString.substring(with: wikilinkRange).hasPrefix("[[") {
-            return (wikilinkRange, .wikilink)
+        if case .range(let hashtagRange) = hashtagRange {
+            return (hashtagRange, .hashtag)
         }
 
-        if textStorage.mutableString.substring(with: hashtagRange).hasPrefix("#") {
-            return (hashtagRange, .hashtag)
+        if case .range(let wikilinkRange) = wikilinkRange {
+            return (wikilinkRange, .wikilink)
         }
 
         return (wordRange, .manual)

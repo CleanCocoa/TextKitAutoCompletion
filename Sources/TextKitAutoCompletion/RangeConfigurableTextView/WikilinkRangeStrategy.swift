@@ -21,14 +21,14 @@ where Base: RangeForUserCompletionStrategy {
         self.isIncludingBracketsInMatchedRange = includingBracketsInMatchedRange
     }
 
-    public func rangeForUserCompletion(textView: NSTextView) -> NSRange {
+    public func rangeForUserCompletion(textView: NSTextView) -> MaybeRange {
         // Avoiding potential bridging overhead from  `NSTextView.string as NSString` by accessing the un-bridged mutable string of the text storage.
         guard let nsString = textView.textStorage?.mutableString as NSString? else {
             preconditionFailure("NSTextView needs a text storage to function")
         }
 
-        let baseRange = base.rangeForUserCompletion(textView: textView)
-        guard baseRange != .notFound else { return baseRange }
+        guard case .range(let baseRange) = base.rangeForUserCompletion(textView: textView) else { return nil }
+        guard baseRange != .notFound else { return nil }
         let rangeUpToPoint = NSRange(startLocation: 0, endLocation: baseRange.location)
 
         /// The two latest character sequences that were scanned.
@@ -59,12 +59,12 @@ where Base: RangeForUserCompletionStrategy {
                 }
         })
 
-        guard let pointBeforeOpeningBrackets else { return baseRange }
+        guard let pointBeforeOpeningBrackets else { return nil }
 
-        return NSRange(
+        return .range(NSRange(
             startLocation: pointBeforeOpeningBrackets
                 + (isIncludingBracketsInMatchedRange ? 0 : 2),
             endLocation: baseRange.endLocation
-        )
+        ))
     }
 }
