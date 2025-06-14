@@ -140,14 +140,15 @@ class CandidateListViewController: NSViewController, NSTableViewDataSource, NSTa
 
     func tableView(_ tableView: NSTableView, viewFor tableColumn: NSTableColumn?, row: Int) -> NSView? {
         let cellView = NSTableCellView()
+        cellView.translatesAutoresizingMaskIntoConstraints = false
         cellView.identifier = tableColumn?.identifier
 
         let textField = NSTextField()
+        textField.translatesAutoresizingMaskIntoConstraints = false
         textField.stringValue = completionCandidates[row].value
         textField.isBordered = false
         textField.isEditable = false
         textField.drawsBackground = false
-        textField.translatesAutoresizingMaskIntoConstraints = false
 
         cellView.textField = textField
         cellView.addSubview(textField)

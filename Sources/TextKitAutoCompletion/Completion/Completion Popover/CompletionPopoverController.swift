@@ -50,6 +50,14 @@ public class CompletionPopoverController: NSObject, NSPopoverDelegate {
             popoverReferenceRect.size.height = max(popoverReferenceRect.size.height, 1)
 
             popover.show(relativeTo: popoverReferenceRect, of: textView, preferredEdge: .maxY)
+
+            controller.idealWidth = {
+                // Using character count as a very rough heuristic to compute some kind of ideal width without having to lay-out thousands of candidates first. Note that "iii" is probably narrower than "mm" in the system font.
+                let longestCandidate: NSString = completionCandidates.max { lhs, rhs in
+                    lhs.value.count < rhs.value.count
+                }?.value as NSString? ?? ""
+                return longestCandidate.size(withAttributes: [.font : NSFont.systemFont(ofSize: NSFont.systemFontSize)]).width
+            }()
         }
 
         controller.show(

@@ -5,6 +5,12 @@ import TextViewProxy
 
 class CompletionViewController: NSViewController, CandidateListViewControllerDelegate, TextViewProxyDelegate {
     lazy var candidateListViewController = CandidateListViewController()
+    private var idealWidthConstraint: NSLayoutConstraint?
+    var idealWidth: CGFloat = 200 {
+        didSet {
+            idealWidthConstraint?.constant = idealWidth + 8 /* stack view edge insets */ + 8 /* our custom cell padding */ + 8 /* modern table row padding */
+        }
+    }
 
     private let adapter: CompletionAdapter
     var completionPartialWordRange: NSRange { adapter.partialWordRange }
@@ -34,6 +40,13 @@ class CompletionViewController: NSViewController, CandidateListViewControllerDel
         self.view = stackView
 
         stackView.widthAnchor.constraint(greaterThanOrEqualToConstant: 200).isActive = true
+        self.idealWidthConstraint = {
+            let constraint = stackView.widthAnchor.constraint(equalToConstant: self.idealWidth)
+            constraint.isActive = true
+            constraint.priority = .defaultHigh
+            return constraint
+        }()
+        stackView.widthAnchor.constraint(lessThanOrEqualToConstant: 500).isActive = true
 
         stackView.addArrangedSubview(candidateListViewController.view)
 
